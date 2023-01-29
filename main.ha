@@ -7,10 +7,10 @@ use log;
 use net;
 use os;
 use pixbuf;
+use vec;
 use wayland::client;
 use wayland::wl;
-use vec;
-use xdg = wayland::xdg_shell;
+use wayland::xdg;
 
 type state = struct {
 	run: bool,
