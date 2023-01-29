@@ -1,6 +1,7 @@
 use endian;
 use errors;
 use fs;
+use image::qoi;
 use io;
 use log;
 use net;
@@ -54,19 +55,32 @@ export fn main() void = {
 	const stride = size(u32) * width;
 	const shm = state.shm as *wl::shm;
 	const buffer = shm_buffer_create(shm, width, height, stride);
+	const mascot = load_image("mascot.qoi");
 
 	const painter = vec::newpainter(&buffer.pixbuf);
 	vec::clear(&painter, vec::CORNFLOWERBLUE);
 
+	pixbuf::copy(&buffer.pixbuf, &pixbuf::rect {
+		x = 16,
+		y = 16,
+		w = mascot.width,
+		h = mascot.height,
+	}, &mascot, &pixbuf::rect {
+		x = 0,
+		y = 0,
+		w = mascot.width,
+		h = mascot.height,
+	});
+
 	const style = vec::lineargradient(
 		vec::RED,
 		vec::BLUE,
-		(200.0, 128.0),
-		(200.0 + 128.0, 128.0 + 128.0),
+		(220.0, 220.0),
+		(220.0 + 128.0, 220.0 + 128.0),
 	);
 	vec::fill_rect(&painter, &style, &vec::rect {
-		x = 200.0,
-		y = 128.0,
+		x = 220.0,
+		y = 220.0,
 		w = 128.0,
 		h = 128.0,
 	});
@@ -90,6 +104,19 @@ export fn main() void = {
 	wl::surface_commit(surface);
 
 	for (state.run) client::dispatch(conn)!;
+};
+
+fn load_image(path: str) pixbuf::buffer = {
+	const file = os::open("mascot.qoi")!;
+	defer io::close(file)!;
+
+	const (head, dec) = qoi::newreader(file)!;
+	const mascot = pixbuf::newbuffer(pixbuf::format::A8R8G8B8,
+		head.width, head.height);
+	let data = pixbuf::buffer_data(&mascot);
+	io::readall(&dec, data)!;
+
+	return mascot;
 };
 
 const registry_listener = wl::registry_listener {
