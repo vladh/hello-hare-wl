@@ -142,6 +142,11 @@ fn registry_global(
 		const shm = wl::registry_bind(reg, name,
 			&wl::shm_interface, version): *wl::shm;
 		state.shm = shm;
+	case "wl_seat" =>
+		const seat = wl::registry_bind(reg, name,
+			&wl::seat_interface, version): *wl::seat;
+		wl::seat_add_listener(seat,
+			&wl_seat_listener, null);
 	case "xdg_wm_base" =>
 		const wm_base = wl::registry_bind(reg, name,
 			&xdg::wm_base_interface, version): *xdg::wm_base;
@@ -191,4 +196,47 @@ fn xdg_toplevel_close(
 ) void = {
 	let state = user: *state;
 	state.run = false;
+};
+
+const wl_seat_listener = wl::seat_listener {
+	capabilities = &wl_seat_capabilities,
+	...
+};
+
+fn wl_seat_capabilities(
+	user: nullable *void,
+	seat: *wl::seat,
+	caps: u32,
+) void = {
+	if (caps & wl::wl_seat_capability::POINTER != 0) {
+		const ptr = wl::seat_get_pointer(seat);
+		wl::pointer_add_listener(ptr, &wl_pointer_listener, null);
+	};
+};
+
+const wl_pointer_listener = wl::pointer_listener {
+	motion = &wl_pointer_motion,
+	button = &wl_pointer_button,
+	...
+};
+
+fn wl_pointer_motion(
+	user: nullable *void,
+	pointer: *wl::pointer,
+	time: u32,
+	surface_x: f64,
+	surface_y: f64,
+) void = {
+	log::printfln("pointer motion {},{}", surface_x, surface_y);
+};
+
+fn wl_pointer_button(
+	user: nullable *void,
+	pointer: *wl::pointer,
+	serial: u32,
+	time: u32,
+	button: u32,
+	state: u32,
+) void = {
+	log::printfln("pointer button {} = {}", button, state);
 };
