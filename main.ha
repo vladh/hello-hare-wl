@@ -110,7 +110,7 @@ export fn main() void = {
 };
 
 fn load_image(path: str) pixbuf::buffer = {
-	const file = os::open("mascot.qoi")!;
+	const file = os::open(path)!;
 	defer io::close(file)!;
 
 	const (head, dec) = qoi::newreader(file)!;
