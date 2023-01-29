@@ -19,6 +19,8 @@ type state = struct {
 	compositor: nullable *wl::compositor,
 	shm: nullable *wl::shm,
 	wm_base: nullable *xdg::wm_base,
+	toplevel: nullable *xdg::toplevel,
+	seat: nullable *wl::seat,
 
 	// Objects
 	surface: nullable *wl::surface,
@@ -96,6 +98,7 @@ export fn main() void = {
 	const xdg_toplevel = xdg::surface_get_toplevel(xdg_surface);
 	xdg::toplevel_add_listener(xdg_toplevel, &xdg_toplevel_listener, &state);
 	xdg::toplevel_set_title(xdg_toplevel, "hare-wayland demo");
+	state.toplevel = xdg_toplevel;
 
 	wl::surface_commit(surface);
 	client::roundtrip(conn)!;
@@ -146,7 +149,8 @@ fn registry_global(
 		const seat = wl::registry_bind(reg, name,
 			&wl::seat_interface, version): *wl::seat;
 		wl::seat_add_listener(seat,
-			&wl_seat_listener, null);
+			&wl_seat_listener, state);
+		state.seat = seat;
 	case "xdg_wm_base" =>
 		const wm_base = wl::registry_bind(reg, name,
 			&xdg::wm_base_interface, version): *xdg::wm_base;
@@ -210,7 +214,7 @@ fn wl_seat_capabilities(
 ) void = {
 	if (caps & wl::wl_seat_capability::POINTER != 0) {
 		const ptr = wl::seat_get_pointer(seat);
-		wl::pointer_add_listener(ptr, &wl_pointer_listener, null);
+		wl::pointer_add_listener(ptr, &wl_pointer_listener, user);
 	};
 };
 
@@ -236,7 +240,13 @@ fn wl_pointer_button(
 	serial: u32,
 	time: u32,
 	button: u32,
-	state: u32,
+	bstate: u32,
 ) void = {
-	log::printfln("pointer button {} = {}", button, state);
+	const state = user: *state;
+	log::printfln("pointer button {} = {}", button, bstate);
+	if (bstate == wl::wl_pointer_button_state::PRESSED) {
+		const seat = state.seat as *wl::seat;
+		const toplevel = state.toplevel as *xdg::toplevel;
+		xdg::toplevel_move(toplevel, seat, serial);
+	};
 };
