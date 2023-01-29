@@ -219,19 +219,8 @@ fn wl_seat_capabilities(
 };
 
 const wl_pointer_listener = wl::pointer_listener {
-	motion = &wl_pointer_motion,
 	button = &wl_pointer_button,
 	...
-};
-
-fn wl_pointer_motion(
-	user: nullable *void,
-	pointer: *wl::pointer,
-	time: u32,
-	surface_x: f64,
-	surface_y: f64,
-) void = {
-	log::printfln("pointer motion {},{}", surface_x, surface_y);
 };
 
 fn wl_pointer_button(
@@ -243,7 +232,6 @@ fn wl_pointer_button(
 	bstate: u32,
 ) void = {
 	const state = user: *state;
-	log::printfln("pointer button {} = {}", button, bstate);
 	if (bstate == wl::wl_pointer_button_state::PRESSED) {
 		const seat = state.seat as *wl::seat;
 		const toplevel = state.toplevel as *xdg::toplevel;
