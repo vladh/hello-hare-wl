@@ -1,9 +1,12 @@
 use endian;
 use errors;
+use fmt;
 use fs;
+use glm;
 use image::qoi;
 use io;
 use log;
+use math;
 use net;
 use os;
 use pixbuf;
@@ -13,17 +16,28 @@ use wayland::wl;
 use wayland::xdg;
 
 type state = struct {
+	// Meta
 	run: bool,
+	last_time: u32,
+	dt: u32,
 
-	// Globals
+	// Wayland
 	compositor: nullable *wl::compositor,
 	shm: nullable *wl::shm,
 	wm_base: nullable *xdg::wm_base,
 	seat: nullable *wl::seat,
 
-	// Objects
+	// Rendering
 	surface: nullable *wl::surface,
 	toplevel: nullable *xdg::toplevel,
+	buffer: shm_buffer,
+
+	// Assets
+	mascot: pixbuf::buffer,
+
+	// Scene
+	squibble_pos: vec::point,
+	squibble_dir: f64,
 };
 
 export fn main() void = {
@@ -39,6 +53,7 @@ export fn main() void = {
 
 	let state = state {
 		run = true,
+		squibble_dir = glm::rad(30.0),
 		...
 	};
 
@@ -56,8 +71,41 @@ export fn main() void = {
 	const stride = size(u32) * width;
 	const shm = state.shm as *wl::shm;
 	const buffer = shm_buffer_create(shm, width, height, stride);
+	state.buffer = buffer;
 	const mascot = load_image("mascot.qoi");
+	state.mascot = mascot;
 
+	draw(buffer, mascot, state.squibble_pos);
+
+	const compositor = state.compositor as *wl::compositor;
+	const surface = wl::compositor_create_surface(compositor);
+	state.surface = surface;
+
+	const callback: *wl::callback = wl::surface_frame(surface);
+	wl::callback_add_listener(callback, &frame_listener, &state);
+
+	const wm_base = state.wm_base as *xdg::wm_base;
+	const xdg_surface = xdg::wm_base_get_xdg_surface(wm_base, surface);
+	xdg::surface_add_listener(xdg_surface, &xdg_surface_listener, &state);
+
+	const xdg_toplevel = xdg::surface_get_toplevel(xdg_surface);
+	xdg::toplevel_add_listener(xdg_toplevel, &xdg_toplevel_listener, &state);
+	xdg::toplevel_set_title(xdg_toplevel, "hare-wayland demo");
+	xdg::toplevel_set_app_id(xdg_toplevel, "haretest");
+	state.toplevel = xdg_toplevel;
+
+	wl::surface_commit(surface);
+	client::roundtrip(conn)!;
+
+	wl::surface_attach(surface, buffer.buffer, 0, 0);
+	wl::surface_commit(surface);
+
+	for (state.run) {
+		client::dispatch(conn)!;
+	};
+};
+
+fn draw(buffer: shm_buffer, mascot: pixbuf::buffer, squibble_pos: vec::point) void = {
 	const painter = vec::newpainter(&buffer.pixbuf);
 	vec::clear(&painter, vec::CORNFLOWERBLUE);
 
@@ -80,32 +128,21 @@ export fn main() void = {
 		(220.0 + 128.0, 220.0 + 128.0),
 	);
 	vec::fill_rect(&painter, &style, &vec::rect {
-		x = 220.0,
-		y = 220.0,
+		x = squibble_pos.0,
+		y = squibble_pos.1,
 		w = 128.0,
 		h = 128.0,
 	});
+};
 
-	const compositor = state.compositor as *wl::compositor;
-	const surface = wl::compositor_create_surface(compositor);
-	state.surface = surface;
-
-	const wm_base = state.wm_base as *xdg::wm_base;
-	const xdg_surface = xdg::wm_base_get_xdg_surface(wm_base, surface);
-	xdg::surface_add_listener(xdg_surface, &xdg_surface_listener, &state);
-
-	const xdg_toplevel = xdg::surface_get_toplevel(xdg_surface);
-	xdg::toplevel_add_listener(xdg_toplevel, &xdg_toplevel_listener, &state);
-	xdg::toplevel_set_title(xdg_toplevel, "hare-wayland demo");
-	state.toplevel = xdg_toplevel;
-
-	wl::surface_commit(surface);
-	client::roundtrip(conn)!;
-
-	wl::surface_attach(surface, buffer.buffer, 0, 0);
-	wl::surface_commit(surface);
-
-	for (state.run) client::dispatch(conn)!;
+fn update(state: *state, time: u32) void = {
+	if (state.last_time == 0) {
+		state.last_time = time;
+	};
+	state.dt = time - state.last_time;
+	state.last_time = time;
+	state.squibble_pos.0 += state.dt: f64 * 0.2 * math::sinf64(state.squibble_dir);
+	state.squibble_pos.1 += state.dt: f64 * 0.2 * math::cosf64(state.squibble_dir);
 };
 
 fn load_image(path: str) pixbuf::buffer = {
@@ -218,8 +255,19 @@ fn wl_seat_capabilities(
 };
 
 const wl_pointer_listener = wl::pointer_listener {
+	motion = &wl_pointer_motion,
 	button = &wl_pointer_button,
 	...
+};
+
+fn wl_pointer_motion(
+	user: nullable *void,
+	pointer: *wl::pointer,
+	time: u32,
+	surface_x: f64,
+	surface_y: f64,
+) void = {
+	log::printfln("pointer motion {},{}", surface_x, surface_y);
 };
 
 fn wl_pointer_button(
@@ -234,6 +282,33 @@ fn wl_pointer_button(
 	if (bstate == wl::wl_pointer_button_state::PRESSED) {
 		const seat = state.seat as *wl::seat;
 		const toplevel = state.toplevel as *xdg::toplevel;
-		xdg::toplevel_move(toplevel, seat, serial);
 	};
+};
+
+const frame_listener = wl::callback_listener {
+	done = &frame_handle_done,
+	...
+};
+
+fn frame_handle_done(
+	user: nullable *void,
+	callback: *wl::callback,
+	time: u32
+) void = {
+	const state = user: *state;
+
+	// TODO
+	// wl::callback_destroy(callback);
+
+	draw(state.buffer, state.mascot, state.squibble_pos);
+	update(state, time);
+
+	const callback: *wl::callback = wl::surface_frame(state.surface as *wl::surface);
+	wl::callback_add_listener(callback, &frame_listener, state);
+
+	// TODO: https://git.sr.ht/~bl4ckb0ne/gojira/tree/master/item/buffer.c#L122
+	const s: *wl::surface = state.surface as *wl::surface;
+	wl::surface_attach(s, state.buffer.buffer, 0, 0);
+	wl::surface_damage_buffer(s, 0, 0, 6969, 6969);
+	wl::surface_commit(s);
 };
