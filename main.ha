@@ -19,11 +19,11 @@ type state = struct {
 	compositor: nullable *wl::compositor,
 	shm: nullable *wl::shm,
 	wm_base: nullable *xdg::wm_base,
-	toplevel: nullable *xdg::toplevel,
 	seat: nullable *wl::seat,
 
 	// Objects
 	surface: nullable *wl::surface,
+	toplevel: nullable *xdg::toplevel,
 };
 
 export fn main() void = {
@@ -37,16 +37,15 @@ export fn main() void = {
 	};
 	defer client::disconnect(conn)!;
 
-	const registry = wl::display_get_registry(conn);
-	defer client::delete_object(conn, registry.object.id);
-
 	let state = state {
 		run = true,
 		...
 	};
 
-	wl::registry_add_listener(registry, &registry_listener, &state);
+	const registry = wl::display_get_registry(conn);
+	defer client::delete_object(conn, registry.object.id);
 
+	wl::registry_add_listener(registry, &registry_listener, &state);
 	client::roundtrip(conn)!;
 
 	assert(state.compositor != null, "wl_compositor not found");
