@@ -31,13 +31,17 @@ type state = struct {
 	surface: nullable *wl::surface,
 	toplevel: nullable *xdg::toplevel,
 	buffer: shm_buffer,
+	width: size,
+	height: size,
 
 	// Assets
 	mascot: pixbuf::buffer,
 
 	// Scene
-	squibble_pos: vec::point,
+	squibble_rect: vec::rect,
 	squibble_dir: f64,
+	mascot_rect: vec::rect,
+	mascot_dir: f64,
 };
 
 export fn main() void = {
@@ -54,6 +58,21 @@ export fn main() void = {
 	let state = state {
 		run = true,
 		squibble_dir = glm::rad(30.0),
+		squibble_rect = vec::rect {
+			x = 0.0,
+			y = 0.0,
+			w = 128.0,
+			h = 128.0,
+		},
+		mascot_dir = glm::rad(-73.0),
+		mascot_rect = vec::rect {
+			x = 50.0,
+			y = 180.0,
+			w = 0.0,
+			h = 0.0,
+		},
+		width = 640z,
+		height = 480z,
 		...
 	};
 
@@ -67,15 +86,16 @@ export fn main() void = {
 	assert(state.shm != null, "wl_shm not found");
 	assert(state.wm_base != null, "xdg_wm_base not found");
 
-	const width = 640z, height = 480z;
-	const stride = size(u32) * width;
+	const stride = size(u32) * state.width;
 	const shm = state.shm as *wl::shm;
-	const buffer = shm_buffer_create(shm, width, height, stride);
+	const buffer = shm_buffer_create(shm, state.width, state.height, stride);
 	state.buffer = buffer;
 	const mascot = load_image("mascot.qoi");
 	state.mascot = mascot;
+	state.mascot_rect.w = mascot.width: f64;
+	state.mascot_rect.h = mascot.height: f64;
 
-	draw(buffer, mascot, state.squibble_pos);
+	draw(buffer, mascot, &state.squibble_rect, &state.mascot_rect);
 
 	const compositor = state.compositor as *wl::compositor;
 	const surface = wl::compositor_create_surface(compositor);
@@ -105,15 +125,20 @@ export fn main() void = {
 	};
 };
 
-fn draw(buffer: shm_buffer, mascot: pixbuf::buffer, squibble_pos: vec::point) void = {
+fn draw(
+	buffer: shm_buffer,
+	mascot: pixbuf::buffer,
+	squibble_rect: *vec::rect,
+	mascot_rect: *vec::rect,
+) void = {
 	const painter = vec::newpainter(&buffer.pixbuf);
 	vec::clear(&painter, vec::CORNFLOWERBLUE);
 
 	pixbuf::copy(&buffer.pixbuf, &pixbuf::rect {
-		x = 16,
-		y = 16,
-		w = mascot.width,
-		h = mascot.height,
+		x = mascot_rect.x: size,
+		y = mascot_rect.y: size,
+		w = mascot_rect.w: size,
+		h = mascot_rect.h: size,
 	}, &mascot, &pixbuf::rect {
 		x = 0,
 		y = 0,
@@ -127,12 +152,7 @@ fn draw(buffer: shm_buffer, mascot: pixbuf::buffer, squibble_pos: vec::point) vo
 		(220.0, 220.0),
 		(220.0 + 128.0, 220.0 + 128.0),
 	);
-	vec::fill_rect(&painter, &style, &vec::rect {
-		x = squibble_pos.0,
-		y = squibble_pos.1,
-		w = 128.0,
-		h = 128.0,
-	});
+	vec::fill_rect(&painter, &style, squibble_rect);
 };
 
 fn update(state: *state, time: u32) void = {
@@ -141,8 +161,48 @@ fn update(state: *state, time: u32) void = {
 	};
 	state.dt = time - state.last_time;
 	state.last_time = time;
-	state.squibble_pos.0 += state.dt: f64 * 0.2 * math::sinf64(state.squibble_dir);
-	state.squibble_pos.1 += state.dt: f64 * 0.2 * math::cosf64(state.squibble_dir);
+
+	const new_squibble_rect = state.squibble_rect;
+	new_squibble_rect.x += state.dt: f64 * 0.2 * math::sinf64(state.squibble_dir);
+	new_squibble_rect.y += state.dt: f64 * 0.2 * math::cosf64(state.squibble_dir);
+	const viewport = vec::rect {
+		x = 0.0,
+		y = 0.0,
+		w = state.width: f64,
+		h = state.height: f64,
+	};
+	const xcontains = xcontains_rect_rect(&viewport, &new_squibble_rect);
+	const ycontains = ycontains_rect_rect(&viewport, &new_squibble_rect);
+	if (xcontains && ycontains) {
+		state.squibble_rect = new_squibble_rect;
+	} else {
+		if (!xcontains) {
+			state.squibble_dir = 2.0 * math::PI - state.squibble_dir;
+		} else {
+			state.squibble_dir = 1.0 * math::PI - state.squibble_dir;
+		};
+	};
+
+	const new_mascot_rect = state.mascot_rect;
+	new_mascot_rect.x += state.dt: f64 * 0.2 * math::sinf64(state.mascot_dir);
+	new_mascot_rect.y += state.dt: f64 * 0.2 * math::cosf64(state.mascot_dir);
+	const viewport = vec::rect {
+		x = 0.0,
+		y = 0.0,
+		w = state.width: f64,
+		h = state.height: f64,
+	};
+	const xcontains = xcontains_rect_rect(&viewport, &new_mascot_rect);
+	const ycontains = ycontains_rect_rect(&viewport, &new_mascot_rect);
+	if (xcontains && ycontains) {
+		state.mascot_rect = new_mascot_rect;
+	} else {
+		if (!xcontains) {
+			state.mascot_dir = 2.0 * math::PI - state.mascot_dir;
+		} else {
+			state.mascot_dir = 1.0 * math::PI - state.mascot_dir;
+		};
+	};
 };
 
 fn load_image(path: str) pixbuf::buffer = {
@@ -267,7 +327,8 @@ fn wl_pointer_motion(
 	surface_x: f64,
 	surface_y: f64,
 ) void = {
-	log::printfln("pointer motion {},{}", surface_x, surface_y);
+	// log::printfln("pointer motion {},{}", surface_x, surface_y);
+	void;
 };
 
 fn wl_pointer_button(
@@ -300,7 +361,7 @@ fn frame_handle_done(
 	// TODO
 	// wl::callback_destroy(callback);
 
-	draw(state.buffer, state.mascot, state.squibble_pos);
+	draw(state.buffer, state.mascot, &state.squibble_rect, &state.mascot_rect);
 	update(state, time);
 
 	const callback: *wl::callback = wl::surface_frame(state.surface as *wl::surface);
