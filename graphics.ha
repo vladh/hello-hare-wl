@@ -105,7 +105,7 @@ fn load_image(path: str) pixbuf::buffer = {
 	defer io::close(file)!;
 
 	const (head, dec) = qoi::newreader(file)!;
-	const mascot = pixbuf::newbuffer(pixbuf::format::R8G8B8A8,
+	const mascot = pixbuf::newbuffer(pixbuf::format::A8R8G8B8,
 		head.width, head.height);
 	let data = pixbuf::buffer_data(&mascot);
 	io::readall(&dec, data)!;
