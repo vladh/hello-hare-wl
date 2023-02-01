@@ -39,6 +39,14 @@ let CHARS: []u32 = [
 	0x3089, 0x308a, 0x308b, 0x308c, 0x308d, 0x308e, 0x308f, 0x3090, 0x3091,
 	0x3092, 0x3093, 0x3094, 0x3095, 0x3096, 0x3099, 0x309a, 0x309b, 0x309c,
 	0x309d, 0x309e, 0x309f,
+	// Some kanji
+	0x50d5,
+	0x5143,
+	0x6c17,
+	0x5fc3,
+	0x914d,
+	// Some emoji
+	0x1f60a,
 ];
 
 fn init_graphics(state: *state) void = {
@@ -268,7 +276,7 @@ fn draw(state: *state) void = {
 
 	// text
 	draw_text(state, (20, 40 + state.text_y_offset),
-		"roses are red,\nviolets are blue...\n\nぼくはげんきでいるよ\nしんぱいごともすくないよ\nただひとついまもおもいだすよ");
+		"roses are red,\nviolets are blue...\n\n僕は元気でいるよ\n心配ごともすくないよ\nただひとついまもおもいだすよ");
 };
 
 fn draw_text(state: *state, start_pos: ivec, text: str) void = {
