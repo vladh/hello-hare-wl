@@ -13,7 +13,7 @@ use wayland::wl;
 use wayland::xdg;
 
 def FONT_PATH: str = "/usr/share/fonts/noto-cjk/NotoSerifCJK-Regular.ttc";
-def FONT_SIZE: u32 = 32;
+def FONT_SIZE: u32 = 64;
 
 fn init_graphics(state: *state) void = {
 	init_fonts(state);
@@ -53,10 +53,15 @@ fn init_fonts(state: *state) void = {
 		glyph.bitmap.width, glyph.bitmap.rows,
 		glyph.bitmap.pitch, glyph.bitmap.pixel_mode)!;
 
-	state.font_atlas = pixbuf::newbuffer(pixbuf::format::A8R8G8B8, 128, 128);
+	state.font_atlas = pixbuf::newbuffer(pixbuf::format::A8R8G8B8,
+		glyph.bitmap.width, glyph.bitmap.rows);
 	let data = pixbuf::buffer_data(&state.font_atlas);
-	for (let i = 0z; i < 128 * 128 * 4; i += 1) {
-		data[i] = i: u8;
+	for (let i = 0z; i < state.font_atlas.height * state.font_atlas.width; i += 4) {
+		data[i] = 0xff;
+		const val: u8 = *((glyph.bitmap.buffer + i: uintptr): *u8);
+		data[i + 1] = val;
+		data[i + 2] = val;
+		data[i + 3] = val;
 	};
 
 	ft::FT_Done_Face(face);
@@ -150,8 +155,8 @@ fn draw(
 	pixbuf::copy(&buffer.pixbuf, &pixbuf::rect {
 		x = 0,
 		y = 0,
-		w = 128,
-		h = 128,
+		w = font_atlas.width,
+		h = font_atlas.height,
 	}, &font_atlas, &pixbuf::rect {
 		x = 0,
 		y = 0,
