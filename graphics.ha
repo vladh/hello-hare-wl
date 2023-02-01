@@ -45,6 +45,11 @@ fn init_fonts(state: *state) void = {
 		fmt::printfln("face is not scalable")!;
 	};
 
+	let face_rec: *ft::FT_FaceRec = face: *ft::FT_FaceRec;
+	state.font = font {
+		height = face_rec.height,
+	};
+
 	const next_tex_pos: uvec = (0, 0);
 	for (let c = CHAR_FIRST; c < CHAR_LAST; c += 1) {
 		append(state.font_chars, font_char { ... });
@@ -232,7 +237,7 @@ fn draw(state: *state) void = {
 	vec::fill_rect(&painter, &style, &state.squibble_rect);
 
 	// text
-	draw_text(state, (0, 0), "hello ur cute");
+	draw_text(state, (20, 40), "hello ur cute");
 };
 
 fn draw_text(state: *state, pos: ivec, text: str) void = {
@@ -241,7 +246,7 @@ fn draw_text(state: *state, pos: ivec, text: str) void = {
 	for (let i = 0z; i < len(runes); i += 1) {
 		const c: u32 = runes[i]: u32;
 		const font_char: *font_char = &state.font_chars[c];
-		const font_height = 69;
+		const font_height = font_unit_to_px(state.font.height);
 		const char_pos: ivec = (
 			curr_pos.0 + font_char.bearing.0,
 			curr_pos.1 + font_height - font_char.bearing.1,

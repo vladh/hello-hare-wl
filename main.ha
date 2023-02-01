@@ -8,6 +8,10 @@ use wayland::xdg;
 type ivec = (i64, i64);
 type uvec = (u64, u64);
 
+type font = struct {
+	height: i16,
+};
+
 type font_char = struct {
 	sz: uvec,
 	bearing: ivec,
@@ -34,6 +38,7 @@ type state = struct {
 
 	// Assets
 	mascot: pixbuf::buffer,
+	font: font,
 	font_atlas: pixbuf::buffer,
 	font_atlas_nextpos: ivec,
 	font_atlas_row_max_y: u64,
