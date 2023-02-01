@@ -44,7 +44,7 @@ fn init_fonts(state: *state) void = {
 		fmt::printfln("face is not scalable")!;
 	};
 
-	const next_tex_pos: upoint = (0, 0);
+	const next_tex_pos: uvec = (0, 0);
 	for (let c = CHAR_FIRST; c < CHAR_LAST; c += 1) {
 		if (
 			// Unicode C0 controls
@@ -63,7 +63,7 @@ fn init_fonts(state: *state) void = {
 fn add_char_to_font_atlas(
 	state: *state,
 	face: ft::FT_Face,
-	next_tex_pos: *upoint,
+	next_tex_pos: *uvec,
 	c: u32,
 ) void = {
 	let slot: ft::FT_GlyphSlot = (face: *ft::FT_FaceRec).glyph;
@@ -87,7 +87,7 @@ fn add_char_to_font_atlas(
 		width_in_px, glyph.bitmap.rows, glyph.bitmap.pitch: size, buffer);
 
 	let tex_pos = *next_tex_pos;
-	const glyph_end: upoint = (
+	const glyph_end: uvec = (
 		tex_pos.0 + glyph_pixbuf.width: u64,
 		tex_pos.1 + glyph_pixbuf.height: u64,
 	);
@@ -203,42 +203,36 @@ fn init_and_run_wayland(state: *state) void = {
 	};
 };
 
-fn draw(
-	buffer: shm_buffer,
-	font_atlas: pixbuf::buffer,
-	mascot: pixbuf::buffer,
-	squibble_rect: *vec::rect,
-	mascot_rect: *vec::rect,
-) void = {
+fn draw(state: *state) void = {
 	// clear
-	const painter = vec::newpainter(&buffer.pixbuf);
+	const painter = vec::newpainter(&state.buffer.pixbuf);
 	vec::clear(&painter, vec::CORNFLOWERBLUE);
 
 	// text
-	pixbuf::copy(&buffer.pixbuf, &pixbuf::rect {
+	pixbuf::copy(&state.buffer.pixbuf, &pixbuf::rect {
 		x = 0,
 		y = 0,
-		w = font_atlas.width,
-		h = font_atlas.height,
-	}, &font_atlas, &pixbuf::rect {
+		w = state.font_atlas.width,
+		h = state.font_atlas.height,
+	}, &state.font_atlas, &pixbuf::rect {
 		x = 0,
 		y = 0,
-		w = font_atlas.width,
-		h = font_atlas.height,
+		w = state.font_atlas.width,
+		h = state.font_atlas.height,
 	}, pixbuf::blendmode::ADD);
 
 
 	// mascot
-	pixbuf::copy(&buffer.pixbuf, &pixbuf::rect {
-		x = mascot_rect.x: size,
-		y = mascot_rect.y: size,
-		w = mascot_rect.w: size,
-		h = mascot_rect.h: size,
-	}, &mascot, &pixbuf::rect {
+	pixbuf::copy(&state.buffer.pixbuf, &pixbuf::rect {
+		x = state.mascot_rect.x: size,
+		y = state.mascot_rect.y: size,
+		w = state.mascot_rect.w: size,
+		h = state.mascot_rect.h: size,
+	}, &state.mascot, &pixbuf::rect {
 		x = 0,
 		y = 0,
-		w = mascot.width,
-		h = mascot.height,
+		w = state.mascot.width,
+		h = state.mascot.height,
 	}, pixbuf::blendmode::NONE);
 
 	// squibble
@@ -248,7 +242,11 @@ fn draw(
 	// 	(220.0, 220.0),
 	// 	(220.0 + 128.0, 220.0 + 128.0),
 	// );
-	// vec::fill_rect(&painter, &style, squibble_rect);
+	// vec::fill_rect(&painter, &style, state.squibble_rect);
+};
+
+fn draw_text(state: *state, pos: uvec, text: str) void = {
+	void;
 };
 
 const registry_listener = wl::registry_listener {
@@ -394,8 +392,7 @@ fn frame_handle_done(
 	// TODO
 	// wl::callback_destroy(callback);
 
-	draw(state.buffer, state.font_atlas, state.mascot,
-		&state.squibble_rect, &state.mascot_rect);
+	draw(state);
 	update(state, time);
 
 	const callback: *wl::callback = wl::surface_frame(state.surface as *wl::surface);

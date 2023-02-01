@@ -5,14 +5,14 @@ use wayland::client;
 use wayland::wl;
 use wayland::xdg;
 
-type ipoint = (i64, i64);
-type upoint = (u64, u64);
+type ivec = (i64, i64);
+type uvec = (u64, u64);
 
 type font_char = struct {
-	sz: upoint,
-	bearing: ipoint,
-	advance: ipoint,
-	tex_coords: upoint,
+	sz: uvec,
+	bearing: ivec,
+	advance: ivec,
+	tex_coords: uvec,
 };
 
 type state = struct {
@@ -35,7 +35,7 @@ type state = struct {
 	// Assets
 	mascot: pixbuf::buffer,
 	font_atlas: pixbuf::buffer,
-	font_atlas_nextpos: ipoint,
+	font_atlas_nextpos: ivec,
 	font_atlas_row_max_y: u64,
 	font_chars: []font_char,
 
