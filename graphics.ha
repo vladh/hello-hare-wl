@@ -8,6 +8,7 @@ use math;
 use net;
 use os;
 use pixbuf;
+use strings;
 use vec;
 use wayland::client;
 use wayland::wl;
@@ -15,7 +16,7 @@ use wayland::xdg;
 
 def FONT_PATH: str = "/usr/share/fonts/noto-cjk/NotoSerifCJK-Regular.ttc";
 def FONT_SIZE: u32 = 32;
-def CHAR_FIRST: u32 = 0x00;
+def CHAR_FIRST: u32 = 0x00; // must be zero or font_chars allocation will break
 def CHAR_LAST: u32 = 0x7e;
 
 fn init_graphics(state: *state) void = {
@@ -46,6 +47,7 @@ fn init_fonts(state: *state) void = {
 
 	const next_tex_pos: uvec = (0, 0);
 	for (let c = CHAR_FIRST; c < CHAR_LAST; c += 1) {
+		append(state.font_chars, font_char { ... });
 		if (
 			// Unicode C0 controls
 			(c <= 0x1f) ||
@@ -115,12 +117,11 @@ fn add_char_to_font_atlas(
 		h = glyph_pixbuf.height,
 	}, pixbuf::blendmode::NONE);
 
-	let font_char: font_char = font_char { ... };
+	let font_char: *font_char = &state.font_chars[c];
 	font_char.sz = (glyph_pixbuf.width, glyph.bitmap.rows);
 	font_char.bearing = (glyph.bitmap_left, glyph.bitmap_top);
 	font_char.advance = (glyph.advance.x, glyph.advance.y);
 	font_char.tex_coords = tex_pos;
-	append(state.font_chars, font_char);
 
 	if (font_char.sz.1 > state.font_atlas_row_max_y) {
 		state.font_atlas_row_max_y = font_char.sz.1;
@@ -208,20 +209,6 @@ fn draw(state: *state) void = {
 	const painter = vec::newpainter(&state.buffer.pixbuf);
 	vec::clear(&painter, vec::CORNFLOWERBLUE);
 
-	// text
-	pixbuf::copy(&state.buffer.pixbuf, &pixbuf::rect {
-		x = 0,
-		y = 0,
-		w = state.font_atlas.width,
-		h = state.font_atlas.height,
-	}, &state.font_atlas, &pixbuf::rect {
-		x = 0,
-		y = 0,
-		w = state.font_atlas.width,
-		h = state.font_atlas.height,
-	}, pixbuf::blendmode::ADD);
-
-
 	// mascot
 	pixbuf::copy(&state.buffer.pixbuf, &pixbuf::rect {
 		x = state.mascot_rect.x: size,
@@ -236,17 +223,62 @@ fn draw(state: *state) void = {
 	}, pixbuf::blendmode::NONE);
 
 	// squibble
-	// const style = vec::lineargradient(
-	// 	vec::RED,
-	// 	vec::BLUE,
-	// 	(220.0, 220.0),
-	// 	(220.0 + 128.0, 220.0 + 128.0),
-	// );
-	// vec::fill_rect(&painter, &style, state.squibble_rect);
+	const style = vec::lineargradient(
+		vec::RED,
+		vec::BLUE,
+		(220.0, 220.0),
+		(220.0 + 128.0, 220.0 + 128.0),
+	);
+	vec::fill_rect(&painter, &style, &state.squibble_rect);
+
+	// text
+	draw_text(state, (0, 0), "hello ur cute");
 };
 
-fn draw_text(state: *state, pos: uvec, text: str) void = {
-	void;
+fn draw_text(state: *state, pos: ivec, text: str) void = {
+	let curr_pos = pos;
+	let runes = strings::runes(text);
+	for (let i = 0z; i < len(runes); i += 1) {
+		const c: u32 = runes[i]: u32;
+		const font_char: *font_char = &state.font_chars[c];
+		const font_height = 69;
+		const char_pos: ivec = (
+			curr_pos.0 + font_char.bearing.0,
+			curr_pos.1 + font_height - font_char.bearing.1,
+		);
+		if (char_pos.0 < 0) {
+			char_pos.0 = 0;
+		};
+		if (char_pos.1 < 0) {
+			char_pos.1 = 0;
+		};
+		pixbuf::copy(&state.buffer.pixbuf, &pixbuf::rect {
+			x = char_pos.0: u64,
+			y = char_pos.1: u64,
+			w = font_char.sz.0,
+			h = font_char.sz.1,
+		}, &state.font_atlas, &pixbuf::rect {
+			x = font_char.tex_coords.0,
+			y = font_char.tex_coords.1,
+			w = font_char.sz.0,
+			h = font_char.sz.1,
+		}, pixbuf::blendmode::ADD);
+		curr_pos.0 = curr_pos.0 + frac_px_to_px(font_char.advance.0);
+		curr_pos.1 = curr_pos.1 + frac_px_to_px(font_char.advance.1);
+	};
+};
+
+fn frac_px_to_px(n: i64) i64 = {
+	return n >> 6;
+};
+
+fn font_unit_to_px(n: i64) i64 = {
+	// NOTE: We should be dividing by units_per_em here...probably?
+	// This is because we expect height etc. to be in "font units".
+	// But treating these metrics as "fractional pixels" seems to work,
+	// whereas division by units_per_em doesn't.
+	// Check this in more detail.
+	return n >> 6;
 };
 
 const registry_listener = wl::registry_listener {
