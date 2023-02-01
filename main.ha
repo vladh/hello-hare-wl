@@ -14,6 +14,7 @@ type font = struct {
 };
 
 type font_char = struct {
+	c: u32,
 	sz: uvec,
 	bearing: ivec,
 	advance: ivec,

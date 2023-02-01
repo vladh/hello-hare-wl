@@ -16,9 +16,30 @@ use wayland::xdg;
 
 def FONT_PATH: str = "/usr/share/fonts/noto-cjk/NotoSerifCJK-Regular.ttc";
 def FONT_SIZE: u32 = 32;
-def CHAR_FIRST: u32 = 0x00; // must be zero or font_chars allocation will break
-def CHAR_LAST: u32 = 0x7e;
 def LINE_HEIGHT: f32 = 2.0;
+let CHARS: []u32 = [
+	// Basic Latin
+	0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b,
+	0x2c, 0x2d, 0x2e, 0x2f, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37,
+	0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3f, 0x40, 0x41, 0x42, 0x43,
+	0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f,
+	0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5a, 0x5b,
+	0x5c, 0x5d, 0x5e, 0x5f, 0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67,
+	0x68, 0x69, 0x6a, 0x6b, 0x6c, 0x6d, 0x6e, 0x6f, 0x70, 0x71, 0x72, 0x73,
+	0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7a, 0x7b, 0x7c, 0x7d, 0x7e,
+	// Hiragana
+	0x3041, 0x3042, 0x3043, 0x3044, 0x3045, 0x3046, 0x3047, 0x3048, 0x3049,
+	0x304a, 0x304b, 0x304c, 0x304d, 0x304e, 0x304f, 0x3050, 0x3051, 0x3052,
+	0x3053, 0x3054, 0x3055, 0x3056, 0x3057, 0x3058, 0x3059, 0x305a, 0x305b,
+	0x305c, 0x305d, 0x305e, 0x305f, 0x3060, 0x3061, 0x3062, 0x3063, 0x3064,
+	0x3065, 0x3066, 0x3067, 0x3068, 0x3069, 0x306a, 0x306b, 0x306c, 0x306d,
+	0x306e, 0x306f, 0x3070, 0x3071, 0x3072, 0x3073, 0x3074, 0x3075, 0x3076,
+	0x3077, 0x3078, 0x3079, 0x307a, 0x307b, 0x307c, 0x307d, 0x307e, 0x307f,
+	0x3080, 0x3081, 0x3082, 0x3083, 0x3084, 0x3085, 0x3086, 0x3087, 0x3088,
+	0x3089, 0x308a, 0x308b, 0x308c, 0x308d, 0x308e, 0x308f, 0x3090, 0x3091,
+	0x3092, 0x3093, 0x3094, 0x3095, 0x3096, 0x3099, 0x309a, 0x309b, 0x309c,
+	0x309d, 0x309e, 0x309f,
+];
 
 fn init_graphics(state: *state) void = {
 	init_fonts(state);
@@ -53,16 +74,8 @@ fn init_fonts(state: *state) void = {
 	};
 
 	const next_tex_pos: uvec = (0, 0);
-	for (let c = CHAR_FIRST; c < CHAR_LAST; c += 1) {
-		append(state.font_chars, font_char { ... });
-		if (
-			// Unicode C0 controls
-			(c <= 0x1f) ||
-			// Unicode C1 controls
-			(c >= 0x80 && c <= 0x9f)
-		) {
-			continue;
-		};
+	for (let i = 0z; i < len(CHARS); i += 1) {
+		const c: u32 = CHARS[i];
 		add_char_to_font_atlas(state, face, &next_tex_pos, c);
 	};
 
@@ -124,11 +137,13 @@ fn add_char_to_font_atlas(
 		h = glyph_pixbuf.height,
 	}, pixbuf::blendmode::NONE);
 
-	let font_char: *font_char = &state.font_chars[c];
+	let font_char: font_char = font_char { ... };
+	font_char.c = c;
 	font_char.sz = (glyph_pixbuf.width, glyph.bitmap.rows);
 	font_char.bearing = (glyph.bitmap_left, glyph.bitmap_top);
 	font_char.advance = (glyph.advance.x, glyph.advance.y);
 	font_char.tex_coords = tex_pos;
+	append(state.font_chars, font_char);
 
 	if (font_char.sz.1 > state.font_atlas_row_max_y) {
 		state.font_atlas_row_max_y = font_char.sz.1;
@@ -216,6 +231,19 @@ fn draw(state: *state) void = {
 	const painter = vec::newpainter(&state.buffer.pixbuf);
 	vec::clear(&painter, vec::CORNFLOWERBLUE);
 
+	// atlas
+	// pixbuf::copy(&state.buffer.pixbuf, &pixbuf::rect {
+	// 	x = 0,
+	// 	y = 0,
+	// 	w = state.font_atlas.width,
+	// 	h = state.font_atlas.height,
+	// }, &state.font_atlas, &pixbuf::rect {
+	// 	x = 0,
+	// 	y = 0,
+	// 	w = state.font_atlas.width,
+	// 	h = state.font_atlas.height,
+	// }, pixbuf::blendmode::ADD);
+
 	// mascot
 	pixbuf::copy(&state.buffer.pixbuf, &pixbuf::rect {
 		x = state.mascot_rect.x: size,
@@ -240,7 +268,7 @@ fn draw(state: *state) void = {
 
 	// text
 	draw_text(state, (20, 40 + state.text_y_offset),
-		"roses are red,\nviolets are blue,\n94ua$)SFH*A90,\nfdsgsdf.");
+		"roses are red,\nviolets are blue...\n\nぼくはげんきでいるよ\nしんぱいごともすくないよ\nただひとついまもおもいだすよ");
 };
 
 fn draw_text(state: *state, start_pos: ivec, text: str) void = {
@@ -256,7 +284,12 @@ fn draw_text(state: *state, start_pos: ivec, text: str) void = {
 			curr_pos.1 += font_line_advance;
 			continue;
 		};
-		const font_char: *font_char = &state.font_chars[c];
+		const font_char = match (get_font_char(state.font_chars, c)) {
+		case let f: *font_char =>
+			yield f;
+		case void =>
+			fmt::fatalf("could not find char {}", c);
+		};
 		const char_pos: ivec = (
 			curr_pos.0 + font_char.bearing.0,
 			curr_pos.1 + font_height - font_char.bearing.1,
@@ -281,6 +314,15 @@ fn draw_text(state: *state, start_pos: ivec, text: str) void = {
 		curr_pos.0 = curr_pos.0 + frac_px_to_px(font_char.advance.0);
 		curr_pos.1 = curr_pos.1 + frac_px_to_px(font_char.advance.1);
 	};
+};
+
+fn get_font_char(font_chars: []font_char, c: u32) (*font_char | void) = {
+	for (let i = 0z; i < len(font_chars); i += 1) {
+		if (font_chars[i].c == c) {
+			return &font_chars[i];
+		};
+	};
+	return void;
 };
 
 fn frac_px_to_px(n: i64) i64 = {
