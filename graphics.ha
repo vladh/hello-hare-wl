@@ -41,11 +41,16 @@ fn init_fonts(state: *state) void = {
 	const c = 'E': u64;
 	const c_rune = 'E';
 
-	let glyph: *ft::FT_GlyphSlotRec =
-		((face: *ft::FT_FaceRec).glyph): *ft::FT_GlyphSlotRec;
-	const status = ft::FT_Load_Char(face, c, ft::FT_Load_Flag::FT_LOAD_RENDER);
+	let slot: ft::FT_GlyphSlot = (face: *ft::FT_FaceRec).glyph;
+	let glyph: *ft::FT_GlyphSlotRec = slot: *ft::FT_GlyphSlotRec;
+	const status = ft::FT_Load_Char(face, c, 0);
 	if (status != 0) {
 		fmt::println("could not load char")!;
+	};
+	const status = ft::FT_Render_Glyph(slot,
+		ft::FT_Render_Mode::FT_RENDER_MODE_LCD);
+	if (status != 0) {
+		fmt::println("could not render char")!;
 	};
 
 	fmt::printfln("char {}\n\twidth {}\n\trows {}\n\tpitch {}\n\tpixel_mode {}",
@@ -54,8 +59,8 @@ fn init_fonts(state: *state) void = {
 		glyph.bitmap.pitch, glyph.bitmap.pixel_mode)!;
 
 	let buffer: []u8 =
-		(glyph.bitmap.buffer: *[*]u8)[..glyph.bitmap.width * glyph.bitmap.rows];
-	state.font_atlas = pixbuf::newbuffer_static(pixbuf::format::A1,
+		(glyph.bitmap.buffer: *[*]u8)[..glyph.bitmap.width * glyph.bitmap.rows * 3];
+	state.font_atlas = pixbuf::newbuffer_static(pixbuf::format::R8G8B8,
 		glyph.bitmap.width, glyph.bitmap.rows, buffer);
 
 	ft::FT_Done_Face(face);
