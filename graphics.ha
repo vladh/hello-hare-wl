@@ -78,7 +78,7 @@ fn init_fonts(state: *state) void = {
 		y = 0,
 		w = temp_pixbuf.width,
 		h = temp_pixbuf.height,
-	});
+	}, pixbuf::blendmode::NONE);
 
 	ft::FT_Done_Face(face);
 };
@@ -178,7 +178,7 @@ fn draw(
 		y = 0,
 		w = font_atlas.width,
 		h = font_atlas.height,
-	});
+	}, pixbuf::blendmode::ADD);
 
 
 	// mascot
@@ -192,7 +192,7 @@ fn draw(
 		y = 0,
 		w = mascot.width,
 		h = mascot.height,
-	});
+	}, pixbuf::blendmode::NONE);
 
 	// squibble
 	const style = vec::lineargradient(
