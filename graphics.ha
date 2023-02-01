@@ -53,16 +53,10 @@ fn init_fonts(state: *state) void = {
 		glyph.bitmap.width, glyph.bitmap.rows,
 		glyph.bitmap.pitch, glyph.bitmap.pixel_mode)!;
 
-	state.font_atlas = pixbuf::newbuffer(pixbuf::format::A8R8G8B8,
-		glyph.bitmap.width, glyph.bitmap.rows);
-	let data = pixbuf::buffer_data(&state.font_atlas);
-	for (let i = 0z; i < state.font_atlas.height * state.font_atlas.width; i += 4) {
-		data[i] = 0xff;
-		const val: u8 = *((glyph.bitmap.buffer + i: uintptr): *u8);
-		data[i + 1] = val;
-		data[i + 2] = val;
-		data[i + 3] = val;
-	};
+	let buffer: []u8 =
+		(glyph.bitmap.buffer: *[*]u8)[..glyph.bitmap.width * glyph.bitmap.rows];
+	state.font_atlas = pixbuf::newbuffer_static(pixbuf::format::A1,
+		glyph.bitmap.width, glyph.bitmap.rows, buffer);
 
 	ft::FT_Done_Face(face);
 };
