@@ -17,6 +17,7 @@ def FONT_SIZE: u32 = 32;
 
 fn init_graphics(state: *state) void = {
 	init_fonts(state);
+	init_images(state);
 	init_and_run_wayland(state);
 };
 
@@ -52,7 +53,32 @@ fn init_fonts(state: *state) void = {
 		glyph.bitmap.width, glyph.bitmap.rows,
 		glyph.bitmap.pitch, glyph.bitmap.pixel_mode)!;
 
+	state.font_atlas = pixbuf::newbuffer(pixbuf::format::A8R8G8B8, 128, 128);
+	let data = pixbuf::buffer_data(&state.font_atlas);
+	for (let i = 0z; i < 128 * 128 * 4; i += 1) {
+		data[i] = i: u8;
+	};
+
 	ft::FT_Done_Face(face);
+};
+
+fn init_images(state: *state) void = {
+	state.mascot = load_image("mascot.qoi");
+	state.mascot_rect.w = state.mascot.width: f64;
+	state.mascot_rect.h = state.mascot.height: f64;
+};
+
+fn load_image(path: str) pixbuf::buffer = {
+	const file = os::open(path)!;
+	defer io::close(file)!;
+
+	const (head, dec) = qoi::newreader(file)!;
+	const mascot = pixbuf::newbuffer(pixbuf::format::A8R8G8B8,
+		head.width, head.height);
+	let data = pixbuf::buffer_data(&mascot);
+	io::readall(&dec, data)!;
+
+	return mascot;
 };
 
 fn init_and_run_wayland(state: *state) void = {
@@ -80,12 +106,6 @@ fn init_and_run_wayland(state: *state) void = {
 	const shm = state.shm as *wl::shm;
 	const buffer = shm_buffer_create(shm, state.width, state.height, stride);
 	state.buffer = buffer;
-	const mascot = load_image("mascot.qoi");
-	state.mascot = mascot;
-	state.mascot_rect.w = mascot.width: f64;
-	state.mascot_rect.h = mascot.height: f64;
-
-	draw(buffer, mascot, &state.squibble_rect, &state.mascot_rect);
 
 	const compositor = state.compositor as *wl::compositor;
 	const surface = wl::compositor_create_surface(compositor);
@@ -117,13 +137,30 @@ fn init_and_run_wayland(state: *state) void = {
 
 fn draw(
 	buffer: shm_buffer,
+	font_atlas: pixbuf::buffer,
 	mascot: pixbuf::buffer,
 	squibble_rect: *vec::rect,
 	mascot_rect: *vec::rect,
 ) void = {
+	// clear
 	const painter = vec::newpainter(&buffer.pixbuf);
 	vec::clear(&painter, vec::CORNFLOWERBLUE);
 
+	// text
+	pixbuf::copy(&buffer.pixbuf, &pixbuf::rect {
+		x = 0,
+		y = 0,
+		w = 128,
+		h = 128,
+	}, &font_atlas, &pixbuf::rect {
+		x = 0,
+		y = 0,
+		w = font_atlas.width,
+		h = font_atlas.height,
+	});
+
+
+	// mascot
 	pixbuf::copy(&buffer.pixbuf, &pixbuf::rect {
 		x = mascot_rect.x: size,
 		y = mascot_rect.y: size,
@@ -136,6 +173,7 @@ fn draw(
 		h = mascot.height,
 	});
 
+	// squibble
 	const style = vec::lineargradient(
 		vec::RED,
 		vec::BLUE,
@@ -143,19 +181,6 @@ fn draw(
 		(220.0 + 128.0, 220.0 + 128.0),
 	);
 	vec::fill_rect(&painter, &style, squibble_rect);
-};
-
-fn load_image(path: str) pixbuf::buffer = {
-	const file = os::open(path)!;
-	defer io::close(file)!;
-
-	const (head, dec) = qoi::newreader(file)!;
-	const mascot = pixbuf::newbuffer(pixbuf::format::A8R8G8B8,
-		head.width, head.height);
-	let data = pixbuf::buffer_data(&mascot);
-	io::readall(&dec, data)!;
-
-	return mascot;
 };
 
 const registry_listener = wl::registry_listener {
@@ -301,7 +326,8 @@ fn frame_handle_done(
 	// TODO
 	// wl::callback_destroy(callback);
 
-	draw(state.buffer, state.mascot, &state.squibble_rect, &state.mascot_rect);
+	draw(state.buffer, state.font_atlas, state.mascot,
+		&state.squibble_rect, &state.mascot_rect);
 	update(state, time);
 
 	const callback: *wl::callback = wl::surface_frame(state.surface as *wl::surface);
