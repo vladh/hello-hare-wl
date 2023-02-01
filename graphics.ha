@@ -64,9 +64,9 @@ fn init_fonts(state: *state) void = {
 	const width_in_px = glyph.bitmap.width / depth;
 	const buffer_size = glyph.bitmap.pitch: u32 * glyph.bitmap.rows;
 	let buffer: []u8 = (glyph.bitmap.buffer: *[*]u8)[..buffer_size];
-	const temp_pixbuf = pixbuf::newbuffer_stride_static(pixbuf::format::R8G8B8,
+	const temp_pixbuf = pixbuf::newbuffer_static(pixbuf::format::R8G8B8,
 		width_in_px, glyph.bitmap.rows, glyph.bitmap.pitch: size, buffer);
-	state.font_atlas = pixbuf::newbuffer_stride(pixbuf::format::R8G8B8,
+	state.font_atlas = pixbuf::newbuffer(pixbuf::format::R8G8B8,
 		width_in_px, glyph.bitmap.rows, glyph.bitmap.pitch: size);
 	pixbuf::copy(&state.font_atlas, &pixbuf::rect {
 		x = 0,
@@ -95,7 +95,7 @@ fn load_image(path: str) pixbuf::buffer = {
 
 	const (head, dec) = qoi::newreader(file)!;
 	const mascot = pixbuf::newbuffer(pixbuf::format::A8R8G8B8,
-		head.width, head.height);
+		head.width, head.height, head.width * 4);
 	let data = pixbuf::buffer_data(&mascot);
 	io::readall(&dec, data)!;
 

@@ -29,7 +29,7 @@ fn shm_buffer_create(
 		wl::wl_shm_format::ARGB8888);
 
 	const pixbuf = pixbuf::newbuffer_static(
-		pixbuf::format::A8R8G8B8, width, height,
+		pixbuf::format::A8R8G8B8, width, height, stride,
 		buf[..stride * height]);
 
 	return shm_buffer {
