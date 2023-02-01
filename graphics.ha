@@ -14,7 +14,9 @@ use wayland::wl;
 use wayland::xdg;
 
 def FONT_PATH: str = "/usr/share/fonts/noto-cjk/NotoSerifCJK-Regular.ttc";
-def FONT_SIZE: u32 = 64;
+def FONT_SIZE: u32 = 32;
+def CHAR_FIRST: u32 = 0x00;
+def CHAR_LAST: u32 = 0x7e;
 
 fn init_graphics(state: *state) void = {
 	init_fonts(state);
@@ -23,6 +25,9 @@ fn init_graphics(state: *state) void = {
 };
 
 fn init_fonts(state: *state) void = {
+	state.font_atlas = pixbuf::newbuffer(pixbuf::format::A8R8G8B8,
+		500, 500, 500 * 4);
+
 	let library: ft::FT_Library = null;
 	ft::FT_Init_FreeType(&library);
 
@@ -39,9 +44,28 @@ fn init_fonts(state: *state) void = {
 		fmt::printfln("face is not scalable")!;
 	};
 
-	const c = 'E': u64;
-	const c_rune = 'E';
+	const next_tex_pos: upoint = (0, 0);
+	for (let c = CHAR_FIRST; c < CHAR_LAST; c += 1) {
+		if (
+			// Unicode C0 controls
+			(c <= 0x1f) ||
+			// Unicode C1 controls
+			(c >= 0x80 && c <= 0x9f)
+		) {
+			continue;
+		};
+		add_char_to_font_atlas(state, face, &next_tex_pos, c);
+	};
 
+	ft::FT_Done_Face(face);
+};
+
+fn add_char_to_font_atlas(
+	state: *state,
+	face: ft::FT_Face,
+	next_tex_pos: *upoint,
+	c: u32,
+) void = {
 	let slot: ft::FT_GlyphSlot = (face: *ft::FT_FaceRec).glyph;
 	let glyph: *ft::FT_GlyphSlotRec = slot: *ft::FT_GlyphSlotRec;
 	const status = ft::FT_Load_Char(face, c, 0);
@@ -53,34 +77,57 @@ fn init_fonts(state: *state) void = {
 	if (status != 0) {
 		fmt::println("could not render char")!;
 	};
-
-	fmt::printfln("char {}\n\twidth {}\n\trows {}\n\tpitch {}\n\tpixel_mode {}",
-		c_rune,
-		glyph.bitmap.width, glyph.bitmap.rows,
-		glyph.bitmap.pitch, glyph.bitmap.pixel_mode)!;
 	assert(glyph.bitmap.pitch >= 0);
 
 	const depth = 3u32;
 	const width_in_px = glyph.bitmap.width / depth;
 	const buffer_size = glyph.bitmap.pitch: u32 * glyph.bitmap.rows;
 	let buffer: []u8 = (glyph.bitmap.buffer: *[*]u8)[..buffer_size];
-	const temp_pixbuf = pixbuf::newbuffer_static(pixbuf::format::R8G8B8,
+	const glyph_pixbuf = pixbuf::newbuffer_static(pixbuf::format::R8G8B8,
 		width_in_px, glyph.bitmap.rows, glyph.bitmap.pitch: size, buffer);
-	state.font_atlas = pixbuf::newbuffer(pixbuf::format::R8G8B8,
-		width_in_px, glyph.bitmap.rows, glyph.bitmap.pitch: size);
+
+	let tex_pos = *next_tex_pos;
+	const glyph_end: upoint = (
+		tex_pos.0 + glyph_pixbuf.width: u64,
+		tex_pos.1 + glyph_pixbuf.height: u64,
+	);
+	if (glyph_end.0 > state.font_atlas.width: u64) {
+		// We ran off the right edge, move to the next row
+		tex_pos.0 = 0;
+		tex_pos.1 += state.font_atlas_row_max_y;
+		state.font_atlas_row_max_y = 0;
+	};
+	if (glyph_end.1 > state.font_atlas.height: u64) {
+		// We ran off the bottom edge, not much to do other than start
+		// overwriting
+		tex_pos = (0, 0);
+	};
+
 	pixbuf::copy(&state.font_atlas, &pixbuf::rect {
+		x = tex_pos.0: u32,
+		y = tex_pos.1: u32,
+		w = glyph_pixbuf.width,
+		h = glyph_pixbuf.height,
+	}, &glyph_pixbuf, &pixbuf::rect {
 		x = 0,
 		y = 0,
-		w = state.font_atlas.width,
-		h = state.font_atlas.height,
-	}, &temp_pixbuf, &pixbuf::rect {
-		x = 0,
-		y = 0,
-		w = temp_pixbuf.width,
-		h = temp_pixbuf.height,
+		w = glyph_pixbuf.width,
+		h = glyph_pixbuf.height,
 	}, pixbuf::blendmode::NONE);
 
-	ft::FT_Done_Face(face);
+	let font_char: font_char = font_char { ... };
+	font_char.sz = (glyph_pixbuf.width, glyph.bitmap.rows);
+	font_char.bearing = (glyph.bitmap_left, glyph.bitmap_top);
+	font_char.advance = (glyph.advance.x, glyph.advance.y);
+	font_char.tex_coords = tex_pos;
+	append(state.font_chars, font_char);
+
+	if (font_char.sz.1 > state.font_atlas_row_max_y) {
+		state.font_atlas_row_max_y = font_char.sz.1;
+	};
+
+	*next_tex_pos = tex_pos;
+	next_tex_pos.0 += font_char.sz.0;
 };
 
 fn init_images(state: *state) void = {
@@ -195,13 +242,13 @@ fn draw(
 	}, pixbuf::blendmode::NONE);
 
 	// squibble
-	const style = vec::lineargradient(
-		vec::RED,
-		vec::BLUE,
-		(220.0, 220.0),
-		(220.0 + 128.0, 220.0 + 128.0),
-	);
-	vec::fill_rect(&painter, &style, squibble_rect);
+	// const style = vec::lineargradient(
+	// 	vec::RED,
+	// 	vec::BLUE,
+	// 	(220.0, 220.0),
+	// 	(220.0 + 128.0, 220.0 + 128.0),
+	// );
+	// vec::fill_rect(&painter, &style, squibble_rect);
 };
 
 const registry_listener = wl::registry_listener {
