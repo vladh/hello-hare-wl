@@ -48,7 +48,7 @@ fn init_fonts(state: *state) void = {
 		fmt::println("could not load char")!;
 	};
 	const status = ft::FT_Render_Glyph(slot,
-		ft::FT_Render_Mode::FT_RENDER_MODE_LCD);
+		ft::FT_Render_Mode::FT_RENDER_MODE_NORMAL);
 	if (status != 0) {
 		fmt::println("could not render char")!;
 	};
@@ -58,10 +58,10 @@ fn init_fonts(state: *state) void = {
 		glyph.bitmap.width, glyph.bitmap.rows,
 		glyph.bitmap.pitch, glyph.bitmap.pixel_mode)!;
 
-	let buffer: []u8 =
-		(glyph.bitmap.buffer: *[*]u8)[..glyph.bitmap.width * glyph.bitmap.rows * 3];
-	state.font_atlas = pixbuf::newbuffer_static(pixbuf::format::R8G8B8,
-		glyph.bitmap.width, glyph.bitmap.rows, buffer);
+	const buffer_size = glyph.bitmap.pitch: u32 * glyph.bitmap.rows;
+	let buffer: []u8 = (glyph.bitmap.buffer: *[*]u8)[..buffer_size];
+	state.font_atlas = pixbuf::newbuffer_static(pixbuf::format::A8,
+		glyph.bitmap.pitch: u32, glyph.bitmap.rows, buffer);
 
 	ft::FT_Done_Face(face);
 };
