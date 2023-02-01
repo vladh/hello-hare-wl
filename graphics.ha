@@ -4,6 +4,7 @@ use ft = freetype2;
 use image::qoi;
 use io;
 use log;
+use math;
 use net;
 use os;
 use pixbuf;
@@ -48,7 +49,7 @@ fn init_fonts(state: *state) void = {
 		fmt::println("could not load char")!;
 	};
 	const status = ft::FT_Render_Glyph(slot,
-		ft::FT_Render_Mode::FT_RENDER_MODE_NORMAL);
+		ft::FT_Render_Mode::FT_RENDER_MODE_LCD);
 	if (status != 0) {
 		fmt::println("could not render char")!;
 	};
@@ -57,11 +58,27 @@ fn init_fonts(state: *state) void = {
 		c_rune,
 		glyph.bitmap.width, glyph.bitmap.rows,
 		glyph.bitmap.pitch, glyph.bitmap.pixel_mode)!;
+	assert(glyph.bitmap.pitch >= 0);
 
+	const depth = 3u32;
+	const width_in_px = glyph.bitmap.width / depth;
 	const buffer_size = glyph.bitmap.pitch: u32 * glyph.bitmap.rows;
 	let buffer: []u8 = (glyph.bitmap.buffer: *[*]u8)[..buffer_size];
-	state.font_atlas = pixbuf::newbuffer_static(pixbuf::format::A8,
-		glyph.bitmap.pitch: u32, glyph.bitmap.rows, buffer);
+	const temp_pixbuf = pixbuf::newbuffer_stride_static(pixbuf::format::R8G8B8,
+		width_in_px, glyph.bitmap.rows, glyph.bitmap.pitch: size, buffer);
+	state.font_atlas = pixbuf::newbuffer_stride(pixbuf::format::R8G8B8,
+		width_in_px, glyph.bitmap.rows, glyph.bitmap.pitch: size);
+	pixbuf::copy(&state.font_atlas, &pixbuf::rect {
+		x = 0,
+		y = 0,
+		w = state.font_atlas.width,
+		h = state.font_atlas.height,
+	}, &temp_pixbuf, &pixbuf::rect {
+		x = 0,
+		y = 0,
+		w = temp_pixbuf.width,
+		h = temp_pixbuf.height,
+	});
 
 	ft::FT_Done_Face(face);
 };
