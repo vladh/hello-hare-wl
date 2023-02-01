@@ -10,6 +10,7 @@ type uvec = (u64, u64);
 
 type font = struct {
 	height: i16,
+	line_height: f32,
 };
 
 type font_char = struct {
@@ -49,6 +50,7 @@ type state = struct {
 	squibble_dir: f64,
 	mascot_rect: vec::rect,
 	mascot_dir: f64,
+	text_y_offset: i32,
 };
 
 export fn main() void = {

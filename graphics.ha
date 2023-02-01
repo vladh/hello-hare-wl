@@ -18,6 +18,7 @@ def FONT_PATH: str = "/usr/share/fonts/noto-cjk/NotoSerifCJK-Regular.ttc";
 def FONT_SIZE: u32 = 32;
 def CHAR_FIRST: u32 = 0x00; // must be zero or font_chars allocation will break
 def CHAR_LAST: u32 = 0x7e;
+def LINE_HEIGHT: f32 = 2.0;
 
 fn init_graphics(state: *state) void = {
 	init_fonts(state);
@@ -48,6 +49,7 @@ fn init_fonts(state: *state) void = {
 	let face_rec: *ft::FT_FaceRec = face: *ft::FT_FaceRec;
 	state.font = font {
 		height = face_rec.height,
+		line_height = LINE_HEIGHT,
 	};
 
 	const next_tex_pos: uvec = (0, 0);
@@ -237,16 +239,24 @@ fn draw(state: *state) void = {
 	vec::fill_rect(&painter, &style, &state.squibble_rect);
 
 	// text
-	draw_text(state, (20, 40), "hello ur cute");
+	draw_text(state, (20, 40 + state.text_y_offset),
+		"roses are red,\nviolets are blue,\n94ua$)SFH*A90,\nfdsgsdf.");
 };
 
-fn draw_text(state: *state, pos: ivec, text: str) void = {
-	let curr_pos = pos;
+fn draw_text(state: *state, start_pos: ivec, text: str) void = {
+	let curr_pos = start_pos;
 	let runes = strings::runes(text);
+	const font_height = font_unit_to_px(state.font.height);
+	const font_line_advance =
+		(font_height: f32 * state.font.line_height): i16;
 	for (let i = 0z; i < len(runes); i += 1) {
 		const c: u32 = runes[i]: u32;
+		if (c == '\n': u32) {
+			curr_pos.0 = start_pos.0;
+			curr_pos.1 += font_line_advance;
+			continue;
+		};
 		const font_char: *font_char = &state.font_chars[c];
-		const font_height = font_unit_to_px(state.font.height);
 		const char_pos: ivec = (
 			curr_pos.0 + font_char.bearing.0,
 			curr_pos.1 + font_height - font_char.bearing.1,

@@ -30,6 +30,7 @@ fn update(state: *state, time: u32) void = {
 	};
 	state.dt = time - state.last_time;
 	state.last_time = time;
+	state.text_y_offset = ((math::sinf64(time: f64 / 500.0) + 0.2) * 100.0): i32;
 	const viewport = vec::rect {
 		x = 0.0,
 		y = 0.0,
