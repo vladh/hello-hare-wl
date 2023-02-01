@@ -119,9 +119,6 @@ fn add_char_to_font_atlas(
 	const glyph_pixbuf = pixbuf::newbuffer_static(pixbuf::format::R8G8B8,
 		width_in_px, glyph.bitmap.rows, glyph.bitmap.pitch: size, buffer);
 
-	fmt::println(glyph_idx, glyph.bitmap.pixel_mode, glyph.bitmap.width,
-		glyph.bitmap.rows)!;
-
 	let tex_pos = *next_tex_pos;
 	const glyph_end: uvec = (
 		tex_pos.0 + glyph_pixbuf.width: u64,
