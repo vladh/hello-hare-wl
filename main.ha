@@ -24,6 +24,7 @@ type state = struct {
 
 	// Assets
 	mascot: pixbuf::buffer,
+	font_atlas: pixbuf::buffer,
 
 	// Scene
 	squibble_rect: vec::rect,

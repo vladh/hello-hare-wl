@@ -37,11 +37,20 @@ fn init_fonts(state: *state) void = {
 		fmt::printfln("face is not scalable")!;
 	};
 
-	let slot: ft::FT_GlyphSlot = (face as *ft::FT_FaceRec).glyph;
-	const status = ft::FT_Load_Char(face, 'E', ft::FT_Load_Flag::FT_LOAD_RENDER);
+	const c = 'E': u64;
+	const c_rune = 'E';
+
+	let glyph: *ft::FT_GlyphSlotRec =
+		((face: *ft::FT_FaceRec).glyph): *ft::FT_GlyphSlotRec;
+	const status = ft::FT_Load_Char(face, c, ft::FT_Load_Flag::FT_LOAD_RENDER);
 	if (status != 0) {
 		fmt::println("could not load char")!;
 	};
+
+	fmt::printfln("char {}\n\twidth {}\n\trows {}\n\tpitch {}\n\tpixel_mode {}",
+		c_rune,
+		glyph.bitmap.width, glyph.bitmap.rows,
+		glyph.bitmap.pitch, glyph.bitmap.pixel_mode)!;
 
 	ft::FT_Done_Face(face);
 };
