@@ -55,4 +55,3 @@ export fn main() void = {
 	};
 	init_graphics(&state);
 };
-
