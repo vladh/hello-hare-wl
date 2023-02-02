@@ -297,6 +297,7 @@ fn init_grid(state: *state) void = {
 fn init_images(state: *state) void = {
 	state.mascot = load_image("mascot.qoi");
 	invert_rgb(&state.mascot);
+	set_harriet_alpha(&state.mascot);
 	state.mascot_rect.w = state.mascot.width: f64;
 	state.mascot_rect.h = state.mascot.height: f64;
 
@@ -312,6 +313,25 @@ fn invert_rgb(b: *pixbuf::buffer) void = {
 		data[i + 0] = ~data[i + 0];
 		data[i + 1] = ~data[i + 1];
 		data[i + 2] = ~data[i + 2];
+	};
+};
+
+// Sets the alpha values in a given ARGB [[buffer]].
+fn set_alpha(b: *pixbuf::buffer, a: u8) void = {
+	let data: []u8 = pixbuf::buffer_data(b);
+	for (let i = 0z; i < len(data); i += 4) {
+		data[i + 3] = a;
+	};
+};
+
+fn set_harriet_alpha(b: *pixbuf::buffer) void = {
+	let data: []u8 = pixbuf::buffer_data(b);
+	for (let i = 0z; i < len(data); i += 4) {
+		if (data[i] == 0xff) {
+			data[i + 3] = 0x80;
+		} else {
+			data[i + 3] = 0x00;
+		};
 	};
 };
 
@@ -414,7 +434,7 @@ fn draw(state: *state) void = {
 		y = 0,
 		w = state.mascot.width,
 		h = state.mascot.height,
-	}, pixbuf::blendmode::ADD);
+	}, pixbuf::blendmode::ALPHA);
 
 	// squibble
 	// const style = vec::lineargradient(
