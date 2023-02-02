@@ -1,8 +1,18 @@
 use fmt;
 use vec;
 
+type align = enum u32 {
+	TOP = 1,
+	BOTTOM = 1 << 1,
+	LEFT = 1 << 2,
+	RIGHT = 1 << 3,
+	HCENTER = 1 << 4,
+	VCENTER = 1 << 5,
+};
+
 type widget_button = struct {
 	text: str,
+	align: align,
 	style: vec::style,
 };
 type drawable = (widget_button | void);
@@ -47,9 +57,11 @@ type grid = struct {
 fn grid_calc_dim_metrics(
 	sizings: []grid_sizing,
 	max_size: u64,
+	gap: u64,
 ) []cell_metrics = {
 	let res: []cell_metrics = [];
-	let curr_pos = 0u64;
+	let curr_pos = gap;
+	const adjusted_max_size = max_size - gap;
 	let total_fixed = 0u64;
 	let total_grow = 0u64;
 	for (let i = 0z; i < len(sizings); i += 1) {
@@ -61,7 +73,7 @@ fn grid_calc_dim_metrics(
 			abort("don't know this grid sizing");
 		};
 	};
-	const nonfixed = max_size - total_fixed;
+	const nonfixed = adjusted_max_size - total_fixed;
 	const grow_piece_size = nonfixed / total_grow;
 
 	for (let i = 0z; i < len(sizings); i += 1) {
@@ -88,8 +100,8 @@ fn grid_calc_metrics(
 	grid: *grid,
 ) grid_metrics = {
 	return grid_metrics {
-		cols = grid_calc_dim_metrics(grid.cols, grid.sz.0),
-		rows = grid_calc_dim_metrics(grid.rows, grid.sz.1),
+		cols = grid_calc_dim_metrics(grid.cols, grid.sz.0, grid.gap),
+		rows = grid_calc_dim_metrics(grid.rows, grid.sz.1, grid.gap),
 		...
 	};
 };
@@ -118,12 +130,13 @@ fn grid_calc_item_metrics(
 			row_sz += grid_metrics.rows[row].sz;
 		};
 
+		const gap = grid.gap: f32;
 		const item_metrics = grid_item_metrics {
 			rect = vec::rect {
-				x = origin_col.origin: f32 + grid.gap: f32,
-				y = origin_row.origin: f32 + grid.gap: f32,
-				w = col_sz: f32 - (2.0 * grid.gap: f32),
-				h = row_sz: f32 - (2.0 * grid.gap: f32),
+				x = origin_col.origin: f32,
+				y = origin_row.origin: f32,
+				w = col_sz: f32 - gap,
+				h = row_sz: f32 - gap,
 			},
 		};
 		append(res, item_metrics);

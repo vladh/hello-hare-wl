@@ -8,10 +8,22 @@ fn draw_button(state: *state, button: *widget_button, rect: vec::rect) void = {
 
 	const text_dimensions = get_text_dimensions(
 		state, (rect.x: i32, rect.y: i32): ivec, button.text);
-	const text_rect = rect_align_center(rect, text_dimensions);
+
+	const text_rect: ivec = (
+		rect.x: i64 + state.grid.gap: i64,
+		rect.y: i64 + state.grid.gap: i64,
+	);
+	const centered_rect = rect_align_center(rect, text_dimensions);
+	if (button.align & align::HCENTER != 0) {
+		text_rect.0 = centered_rect.x: i64;
+	};
+	if (button.align & align::VCENTER != 0) {
+		text_rect.1 = centered_rect.y: i64;
+	};
+	// TODO: All the other [[align]] options
 
 	vec::fill_rect(&painter, &button.style, &rect);
-	draw_text(state, (text_rect.x: i32, text_rect.y: i32): ivec, button.text);
+	draw_text(state, text_rect, button.text);
 };
 
 fn draw_text(state: *state, start_pos: ivec, text: str) void = {

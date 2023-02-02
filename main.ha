@@ -65,6 +65,9 @@ type state = struct {
 	compass_rect: vec::rect,
 	compass_dir: f64,
 	text_y_offset: i32,
+
+	// Behavior
+	sum: f64,
 };
 
 export fn main() void = {

@@ -4,7 +4,7 @@ use pixbuf;
 
 def FONT_PATH: str = "/usr/share/fonts/noto-cjk/NotoSerifCJK-Regular.ttc";
 // def FONT_PATH: str = "/usr/share/fonts/noto/NotoColorEmoji.ttf";
-def FONT_SIZE: u32 = 24;
+def FONT_SIZE: u32 = 38;
 def LINE_HEIGHT: f32 = 2.0;
 let CHARS: []u32 = [
 	// Basic Latin

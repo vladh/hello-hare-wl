@@ -11,6 +11,8 @@ use wayland::client;
 use wayland::wl;
 use wayland::xdg;
 
+def COLOR_BG: vec::color = (0.02, 0.02, 0.02, 1.0);
+
 fn init_graphics(state: *state) void = {
 	init_fonts(state);
 	init_images(state);
@@ -19,84 +21,246 @@ fn init_graphics(state: *state) void = {
 };
 
 fn init_grid(state: *state) void = {
+	// NOTE: This is very slow
+	// let COLOR_SCREEN: vec::style = vec::lineargradient(
+	// 	(0.00, 0.00, 0.00, 1.0): vec::color,
+	// 	(0.1, 0.1, 0.1, 1.0): vec::color,
+	// 	(0.0, 0.0),
+	// 	(state.width: f32, 100.0),
+	// );
+	let COLOR_SCREEN: vec::color = (0.1, 0.1, 0.1, 1.0);
+	let COLOR_DIGIT: vec::color = (0.2, 0.2, 0.2, 1.0);
+	let COLOR_OP: vec::color = (0.1, 0.1, 0.8, 1.0);
+	let COLOR_OP2: vec::color = (0.5, 0.5, 0.5, 1.0);
+
 	state.grid = grid {
 		sz = (state.width: u32, state.height: u32),
 		cols = alloc([
-			100: grid_sizing_fixed,
+			1: grid_sizing_grow,
+			1: grid_sizing_grow,
 			1: grid_sizing_grow,
 			1: grid_sizing_grow,
 		]),
 		rows = alloc([
-			100: grid_sizing_fixed,
+			80: grid_sizing_fixed,
+			200: grid_sizing_fixed,
+			1: grid_sizing_grow,
+			1: grid_sizing_grow,
+			1: grid_sizing_grow,
 			1: grid_sizing_grow,
 			1: grid_sizing_grow,
 		]),
-		gap = 5,
+		gap = 10,
 		items = alloc([
 			grid_item {
 				content = widget_button {
-					text = "hello",
-					style = (0.0, 0.0, 1.0, 1.0): vec::color,
+					text = "HAREへようこそ!",
+					style = COLOR_BG,
+					align = align::LEFT | align::VCENTER,
 				},
-				handler = &handle_hello,
 				pos = (0, 0),
+				span = (3, 0),
 				...
 			},
 			grid_item {
 				content = widget_button {
-					text = "there",
-					style = (1.0, 0.0, 0.0, 1.0): vec::color,
-				},
-				pos = (1, 0),
-				...
-			},
-			grid_item {
-				content = widget_button {
-					text = "how",
-					style = (0.5, 0.5, 1.0, 1.0): vec::color,
-				},
-				pos = (2, 0),
-				...
-			},
-			grid_item {
-				content = widget_button {
-					text = "are",
-					style = (0.5, 0.0, 0.5, 1.0): vec::color,
+					text = "69420",
+					style = COLOR_SCREEN,
+					align = align::LEFT | align::VCENTER,
 				},
 				pos = (0, 1),
+				span = (3, 0),
 				...
 			},
 			grid_item {
 				content = widget_button {
-					text = "you",
-					style = (1.0, 0.5, 0.0, 1.0): vec::color,
+					text = "C",
+					style = COLOR_OP2,
+					align = align::HCENTER | align::VCENTER,
 				},
-				pos = (1, 1),
-				span = (1, 0),
-				...
-			},
-			grid_item {
-				content = widget_button {
-					text = "doing",
-					style = (0.0, 0.5, 0.5, 1.0): vec::color,
-				},
+				handler = &handle_c,
 				pos = (0, 2),
 				...
 			},
 			grid_item {
 				content = widget_button {
-					text = "today",
-					style = (1.0, 0.0, 1.0, 1.0): vec::color,
+					text = "+/-",
+					style = COLOR_OP2,
+					align = align::HCENTER | align::VCENTER,
 				},
+				handler = &handle_plusminus,
 				pos = (1, 2),
 				...
 			},
 			grid_item {
 				content = widget_button {
-					text = "?",
-					style = (0.5, 0.5, 1.0, 1.0): vec::color,
+					text = "%",
+					style = COLOR_OP2,
+					align = align::HCENTER | align::VCENTER,
 				},
+				handler = &handle_rem,
 				pos = (2, 2),
+				...
+			},
+			grid_item {
+				content = widget_button {
+					text = "/",
+					style = COLOR_OP,
+					align = align::HCENTER | align::VCENTER,
+				},
+				handler = &handle_div,
+				pos = (3, 2),
+				...
+			},
+			grid_item {
+				content = widget_button {
+					text = "7",
+					style = COLOR_DIGIT,
+					align = align::HCENTER | align::VCENTER,
+				},
+				handler = &handle_7,
+				pos = (0, 3),
+				...
+			},
+			grid_item {
+				content = widget_button {
+					text = "8",
+					style = COLOR_DIGIT,
+					align = align::HCENTER | align::VCENTER,
+				},
+				handler = &handle_8,
+				pos = (1, 3),
+				...
+			},
+			grid_item {
+				content = widget_button {
+					text = "9",
+					style = COLOR_DIGIT,
+					align = align::HCENTER | align::VCENTER,
+				},
+				handler = &handle_9,
+				pos = (2, 3),
+				...
+			},
+			grid_item {
+				content = widget_button {
+					text = "*",
+					style = COLOR_OP,
+					align = align::HCENTER | align::VCENTER,
+				},
+				handler = &handle_mul,
+				pos = (3, 3),
+				...
+			},
+			grid_item {
+				content = widget_button {
+					text = "4",
+					style = COLOR_DIGIT,
+					align = align::HCENTER | align::VCENTER,
+				},
+				handler = &handle_4,
+				pos = (0, 4),
+				...
+			},
+			grid_item {
+				content = widget_button {
+					text = "5",
+					style = COLOR_DIGIT,
+					align = align::HCENTER | align::VCENTER,
+				},
+				handler = &handle_5,
+				pos = (1, 4),
+				...
+			},
+			grid_item {
+				content = widget_button {
+					text = "6",
+					style = COLOR_DIGIT,
+					align = align::HCENTER | align::VCENTER,
+				},
+				handler = &handle_6,
+				pos = (2, 4),
+				...
+			},
+			grid_item {
+				content = widget_button {
+					text = "-",
+					style = COLOR_OP,
+					align = align::HCENTER | align::VCENTER,
+				},
+				handler = &handle_sub,
+				pos = (3, 4),
+				...
+			},
+			grid_item {
+				content = widget_button {
+					text = "1",
+					style = COLOR_DIGIT,
+					align = align::HCENTER | align::VCENTER,
+				},
+				handler = &handle_1,
+				pos = (0, 5),
+				...
+			},
+			grid_item {
+				content = widget_button {
+					text = "2",
+					style = COLOR_DIGIT,
+					align = align::HCENTER | align::VCENTER,
+				},
+				handler = &handle_2,
+				pos = (1, 5),
+				...
+			},
+			grid_item {
+				content = widget_button {
+					text = "3",
+					style = COLOR_DIGIT,
+					align = align::HCENTER | align::VCENTER,
+				},
+				handler = &handle_3,
+				pos = (2, 5),
+				...
+			},
+			grid_item {
+				content = widget_button {
+					text = "+",
+					style = COLOR_OP,
+					align = align::HCENTER | align::VCENTER,
+				},
+				handler = &handle_add,
+				pos = (3, 5),
+				...
+			},
+			grid_item {
+				content = widget_button {
+					text = "0",
+					style = COLOR_DIGIT,
+					align = align::HCENTER | align::VCENTER,
+				},
+				handler = &handle_0,
+				pos = (0, 6),
+				span = (1, 0),
+				...
+			},
+			grid_item {
+				content = widget_button {
+					text = ".",
+					style = COLOR_DIGIT,
+					align = align::HCENTER | align::VCENTER,
+				},
+				handler = &handle_dot,
+				pos = (2, 6),
+				...
+			},
+			grid_item {
+				content = widget_button {
+					text = "=",
+					style = COLOR_OP,
+					align = align::HCENTER | align::VCENTER,
+				},
+				handler = &handle_eq,
+				pos = (3, 6),
 				...
 			},
 		]),
@@ -197,7 +361,7 @@ fn init_and_run_wayland(state: *state) void = {
 fn draw(state: *state) void = {
 	// clear
 	const painter = vec::newpainter(&state.buffer.pixbuf);
-	vec::clear(&painter, vec::MIDNIGHTBLUE);
+	vec::clear(&painter, COLOR_BG);
 
 	// grid
 	grid_draw(state, &state.grid, state.grid_item_metrics);
@@ -226,34 +390,34 @@ fn draw(state: *state) void = {
 		y = 0,
 		w = state.mascot.width,
 		h = state.mascot.height,
-	}, pixbuf::blendmode::SUBTRACT);
+	}, pixbuf::blendmode::ADD);
 
 	// squibble
-	const style = vec::lineargradient(
-		vec::RED,
-		vec::BLUE,
-		(220.0, 220.0),
-		(220.0 + 128.0, 220.0 + 128.0),
-	);
-	vec::fill_rect(&painter, &style, &state.squibble_rect);
+	// const style = vec::lineargradient(
+	// 	vec::RED,
+	// 	vec::BLUE,
+	// 	(220.0, 220.0),
+	// 	(220.0 + 128.0, 220.0 + 128.0),
+	// );
+	// vec::fill_rect(&painter, &style, &state.squibble_rect);
 
 	// text
-	draw_text(state, (20, 40 + state.text_y_offset),
-		"roses are red,\nviolets are blue...\n\n僕は元気でいるよ\n心配ごともすくないよ\nただ一つ今も思い出すよ");
+	// draw_text(state, (20, 40 + state.text_y_offset),
+	// 	"roses are red,\nviolets are blue...\n\n僕は元気でいるよ\n心配ごともすくないよ\nただ一つ今も思い出すよ");
 		// "😊");
 
 	// compass
-	pixbuf::composite(&state.buffer.pixbuf, &pixbuf::rect {
-		x = state.compass_rect.x: size,
-		y = state.compass_rect.y: size,
-		w = state.compass_rect.w: size,
-		h = state.compass_rect.h: size,
-	}, &state.compass, &pixbuf::rect {
-		x = 0,
-		y = 0,
-		w = state.compass.width,
-		h = state.compass.height,
-	}, pixbuf::blendmode::ALPHA);
+	// pixbuf::composite(&state.buffer.pixbuf, &pixbuf::rect {
+	// 	x = state.compass_rect.x: size,
+	// 	y = state.compass_rect.y: size,
+	// 	w = state.compass_rect.w: size,
+	// 	h = state.compass_rect.h: size,
+	// }, &state.compass, &pixbuf::rect {
+	// 	x = 0,
+	// 	y = 0,
+	// 	w = state.compass.width,
+	// 	h = state.compass.height,
+	// }, pixbuf::blendmode::ALPHA);
 };
 
 const registry_listener = wl::registry_listener {
