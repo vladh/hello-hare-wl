@@ -1,3 +1,4 @@
+use fmt;
 use fs;
 use image::qoi;
 use io;
@@ -37,6 +38,7 @@ fn init_grid(state: *state) void = {
 					text = "hello",
 					style = (0.0, 0.0, 1.0, 1.0): vec::color,
 				},
+				handler = &handle_hello,
 				pos = (0, 0),
 				...
 			},
@@ -363,8 +365,9 @@ fn wl_pointer_motion(
 	surface_x: f64,
 	surface_y: f64,
 ) void = {
-	// log::printfln("pointer motion {},{}", surface_x, surface_y);
-	void;
+	const state = user: *state;
+	state.mouse_x = surface_x;
+	state.mouse_y = surface_y;
 };
 
 fn wl_pointer_button(
@@ -379,6 +382,8 @@ fn wl_pointer_button(
 	if (bstate == wl::wl_pointer_button_state::PRESSED) {
 		const seat = state.seat as *wl::seat;
 		const toplevel = state.toplevel as *xdg::toplevel;
+		grid_handle_click(
+			state, state.mouse_x, state.mouse_y, state.grid_item_metrics);
 	};
 };
 

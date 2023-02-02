@@ -15,8 +15,11 @@ type grid_item_metrics = struct {
 	rect: vec::rect,
 };
 
+type grid_item_handler = fn(state: *state, item: *grid_item) void;
+
 type grid_item = struct {
 	content: drawable,
+	handler: *grid_item_handler,
 	pos: uvec,
 	// This is the span _in addition to_ the default 1x1 size
 	span: uvec,
@@ -148,5 +151,41 @@ fn grid_draw(
 ) void = {
 	for (let i = 0z; i < len(grid.items); i += 1) {
 		grid_draw_item(state, &grid.items[i], &item_metrics[i]);
+	};
+};
+
+fn grid_item_at(
+	state: *state,
+	x: f32,
+	y: f32,
+	item_metrics: []grid_item_metrics,
+) (size | void) = {
+	for (let i = 0z; i < len(item_metrics); i += 1) {
+		const rect = item_metrics[i].rect;
+		if (
+			x >= rect.x &&
+			y >= rect.y &&
+			x <= (rect.x + rect.w) &&
+			y <= (rect.y + rect.h)
+		) {
+			return i;
+		};
+	};
+	return void;
+};
+
+fn grid_handle_click(
+	state: *state,
+	x: f32,
+	y: f32,
+	item_metrics: []grid_item_metrics,
+) void = {
+	const item_idx = grid_item_at(
+		state, state.mouse_x, state.mouse_y, state.grid_item_metrics);
+	if (item_idx is size) {
+		const item = state.grid.items[item_idx: size];
+		if (item.handler != null) {
+			item.handler(state, &item);
+		};
 	};
 };

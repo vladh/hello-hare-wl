@@ -44,6 +44,10 @@ type state = struct {
 	grid_metrics: grid_metrics,
 	grid_item_metrics: []grid_item_metrics,
 
+	// Interaction
+	mouse_x: f64,
+	mouse_y: f64,
+
 	// Assets
 	mascot: pixbuf::buffer,
 	compass: pixbuf::buffer,
