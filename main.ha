@@ -40,6 +40,7 @@ type state = struct {
 
 	// Assets
 	mascot: pixbuf::buffer,
+	compass: pixbuf::buffer,
 	font: font,
 	font_atlas: pixbuf::buffer,
 	font_atlas_nextpos: ivec,
@@ -51,6 +52,8 @@ type state = struct {
 	squibble_dir: f64,
 	mascot_rect: vec::rect,
 	mascot_dir: f64,
+	compass_rect: vec::rect,
+	compass_dir: f64,
 	text_y_offset: i32,
 };
 
@@ -68,6 +71,13 @@ export fn main() void = {
 		mascot_rect = vec::rect {
 			x = 50.0,
 			y = 180.0,
+			w = 0.0,
+			h = 0.0,
+		},
+		compass_dir = glm::rad(-12.0),
+		compass_rect = vec::rect {
+			x = 150.0,
+			y = 20.0,
 			w = 0.0,
 			h = 0.0,
 		},

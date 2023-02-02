@@ -40,4 +40,5 @@ fn update(state: *state, time: u32) void = {
 
 	do_dvd(&state.squibble_rect, &state.squibble_dir, state.dt, &viewport, 1.0);
 	do_dvd(&state.mascot_rect, &state.mascot_dir, state.dt, &viewport, 2.0);
+	do_dvd(&state.compass_rect, &state.compass_dir, state.dt, &viewport, 2.0);
 };

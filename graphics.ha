@@ -173,6 +173,10 @@ fn init_images(state: *state) void = {
 	pixbuf::invert_rgb(&state.mascot);
 	state.mascot_rect.w = state.mascot.width: f64;
 	state.mascot_rect.h = state.mascot.height: f64;
+
+	state.compass = load_image("compass.qoi");
+	state.compass_rect.w = state.compass.width: f64;
+	state.compass_rect.h = state.compass.height: f64;
 };
 
 fn load_image(path: str) pixbuf::buffer = {
@@ -180,12 +184,12 @@ fn load_image(path: str) pixbuf::buffer = {
 	defer io::close(file)!;
 
 	const (head, dec) = qoi::newreader(file)!;
-	const mascot = pixbuf::newbuffer(pixbuf::format::A8R8G8B8,
+	const img = pixbuf::newbuffer(pixbuf::format::A8R8G8B8,
 		head.width, head.height, head.width * 4);
-	let data = pixbuf::buffer_data(&mascot);
+	let data = pixbuf::buffer_data(&img);
 	io::readall(&dec, data)!;
 
-	return mascot;
+	return img;
 };
 
 fn init_and_run_wayland(state: *state) void = {
@@ -271,7 +275,20 @@ fn draw(state: *state) void = {
 		y = 0,
 		w = state.mascot.width,
 		h = state.mascot.height,
-	}, pixbuf::blendmode::ADD);
+	}, pixbuf::blendmode::SUBTRACT);
+
+	// compass
+	pixbuf::copy(&state.buffer.pixbuf, &pixbuf::rect {
+		x = state.compass_rect.x: size,
+		y = state.compass_rect.y: size,
+		w = state.compass_rect.w: size,
+		h = state.compass_rect.h: size,
+	}, &state.compass, &pixbuf::rect {
+		x = 0,
+		y = 0,
+		w = state.compass.width,
+		h = state.compass.height,
+	}, pixbuf::blendmode::ALPHA);
 
 	// squibble
 	const style = vec::lineargradient(
@@ -327,7 +344,7 @@ fn draw_text(state: *state, start_pos: ivec, text: str) void = {
 			y = font_char.tex_coords.1,
 			w = font_char.sz.0,
 			h = font_char.sz.1,
-		}, pixbuf::blendmode::SUBTRACT);
+		}, pixbuf::blendmode::ADD);
 		curr_pos.0 = curr_pos.0 + frac_px_to_px(font_char.advance.0);
 		curr_pos.1 = curr_pos.1 + frac_px_to_px(font_char.advance.1);
 	};
