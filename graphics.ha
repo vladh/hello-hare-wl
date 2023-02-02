@@ -16,7 +16,7 @@ use wayland::xdg;
 
 def FONT_PATH: str = "/usr/share/fonts/noto-cjk/NotoSerifCJK-Regular.ttc";
 // def FONT_PATH: str = "/usr/share/fonts/noto/NotoColorEmoji.ttf";
-def FONT_SIZE: u32 = 32;
+def FONT_SIZE: u32 = 24;
 def LINE_HEIGHT: f32 = 2.0;
 let CHARS: []u32 = [
 	// Basic Latin
@@ -65,12 +65,12 @@ fn init_grid(state: *state) void = {
 	state.grid = grid {
 		sz = (state.width: u32, state.height: u32),
 		cols = alloc([
-			50: grid_sizing_fixed,
+			100: grid_sizing_fixed,
 			1: grid_sizing_grow,
 			1: grid_sizing_grow,
 		]),
 		rows = alloc([
-			50: grid_sizing_fixed,
+			100: grid_sizing_fixed,
 			1: grid_sizing_grow,
 			1: grid_sizing_grow,
 		]),
@@ -86,7 +86,7 @@ fn init_grid(state: *state) void = {
 			},
 			grid_item {
 				content = widget_button {
-					text = "hello",
+					text = "there",
 					style = (1.0, 0.0, 0.0, 1.0): vec::color,
 				},
 				pos = (1, 0),
@@ -94,7 +94,7 @@ fn init_grid(state: *state) void = {
 			},
 			grid_item {
 				content = widget_button {
-					text = "hello",
+					text = "how",
 					style = (0.5, 0.5, 1.0, 1.0): vec::color,
 				},
 				pos = (2, 0),
@@ -102,7 +102,7 @@ fn init_grid(state: *state) void = {
 			},
 			grid_item {
 				content = widget_button {
-					text = "hello",
+					text = "are",
 					style = (0.5, 0.0, 0.5, 1.0): vec::color,
 				},
 				pos = (0, 1),
@@ -110,7 +110,7 @@ fn init_grid(state: *state) void = {
 			},
 			grid_item {
 				content = widget_button {
-					text = "hello",
+					text = "you",
 					style = (1.0, 0.5, 0.0, 1.0): vec::color,
 				},
 				pos = (1, 1),
@@ -119,7 +119,7 @@ fn init_grid(state: *state) void = {
 			},
 			grid_item {
 				content = widget_button {
-					text = "hello",
+					text = "doing",
 					style = (0.0, 0.5, 0.5, 1.0): vec::color,
 				},
 				pos = (0, 2),
@@ -127,7 +127,7 @@ fn init_grid(state: *state) void = {
 			},
 			grid_item {
 				content = widget_button {
-					text = "hello",
+					text = "today",
 					style = (1.0, 0.0, 1.0, 1.0): vec::color,
 				},
 				pos = (1, 2),
@@ -135,7 +135,7 @@ fn init_grid(state: *state) void = {
 			},
 			grid_item {
 				content = widget_button {
-					text = "hello",
+					text = "?",
 					style = (0.5, 0.5, 1.0, 1.0): vec::color,
 				},
 				pos = (2, 2),

@@ -12,6 +12,7 @@ fn draw_button(state: *state, button: *widget_button, rect: vec::rect) void = {
 		(220.0 + 128.0, 220.0 + 128.0),
 	);
 	vec::fill_rect(&painter, &button.style, &rect);
+	draw_text(state, (rect.x: i32, rect.y: i32): ivec, button.text);
 };
 
 fn draw_text(state: *state, start_pos: ivec, text: str) void = {
