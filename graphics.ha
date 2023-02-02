@@ -284,10 +284,10 @@ fn init_images(state: *state) void = {
 // Inverts the RGB values in a given ARGB [[buffer]].
 fn invert_rgb(b: *pixbuf::buffer) void = {
 	let data: []u8 = pixbuf::buffer_data(b);
-	for (let i = 0z; i < len(data) - 4; i += 1) {
+	for (let i = 0z; i < len(data); i += 4) {
+		data[i + 0] = ~data[i + 0];
 		data[i + 1] = ~data[i + 1];
 		data[i + 2] = ~data[i + 2];
-		data[i + 3] = ~data[i + 3];
 	};
 };
 
