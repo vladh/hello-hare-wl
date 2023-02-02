@@ -8,6 +8,15 @@ use wayland::xdg;
 type ivec = (i64, i64);
 type uvec = (u64, u64);
 
+type calc_op = enum {
+	NONE,
+	DIV,
+	MUL,
+	SUB,
+	ADD,
+	REM,
+};
+
 type font = struct {
 	height: i16,
 	ascender: i16,
@@ -67,7 +76,11 @@ type state = struct {
 	text_y_offset: i32,
 
 	// Behavior
+	cache: f64,
 	sum: f64,
+	dot_on: bool,
+	dot_count: u32,
+	op: calc_op,
 };
 
 export fn main() void = {
