@@ -9,6 +9,7 @@ fn draw_button(
 	rect: vec::rect,
 	hover: bool,
 ) void = {
+	const y_offset = 5;
 	const painter = vec::newpainter(&state.buffer.pixbuf);
 
 	const text_dimensions = get_text_dimensions(
@@ -16,7 +17,7 @@ fn draw_button(
 
 	const text_rect: ivec = (
 		rect.x: i64 + state.grid.gap: i64,
-		rect.y: i64 + state.grid.gap: i64,
+		rect.y: i64 + state.grid.gap: i64 + y_offset,
 	);
 	const centered_rect = rect_align_center(rect, text_dimensions);
 	if (button.align & align::HCENTER != 0) {
@@ -32,6 +33,10 @@ fn draw_button(
 	} else {
 		vec::fill_rect(&painter, &button.style, &rect);
 	};
+
+	// TODO: Why do we need to do this? Looks weird otherwise.
+	text_rect.1 += y_offset;
+
 	draw_text(state, text_rect, button.text);
 };
 

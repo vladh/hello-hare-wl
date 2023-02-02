@@ -2,7 +2,7 @@ use fmt;
 use ft = freetype2;
 use pixbuf;
 
-def FONT_PATH: str = "/usr/share/fonts/noto-cjk/NotoSerifCJK-Regular.ttc";
+def FONT_PATH: str = "/usr/share/fonts/TTF/IBMPlexSansJP-Regular.ttf";
 // def FONT_PATH: str = "/usr/share/fonts/noto/NotoColorEmoji.ttf";
 def FONT_SIZE: u32 = 38;
 def LINE_HEIGHT: f32 = 2.0;
