@@ -117,10 +117,10 @@ fn grid_calc_item_metrics(
 
 		const item_metrics = grid_item_metrics {
 			rect = vec::rect {
-				x = origin_col.origin: f32,
-				y = origin_row.origin: f32,
-				w = col_sz: f32,
-				h = row_sz: f32,
+				x = origin_col.origin: f32 + grid.gap: f32,
+				y = origin_row.origin: f32 + grid.gap: f32,
+				w = col_sz: f32 - (2.0 * grid.gap: f32),
+				h = row_sz: f32 - (2.0 * grid.gap: f32),
 			},
 		};
 		append(res, item_metrics);

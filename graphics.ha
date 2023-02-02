@@ -74,7 +74,7 @@ fn init_grid(state: *state) void = {
 			1: grid_sizing_grow,
 			1: grid_sizing_grow,
 		]),
-		gap = 20,
+		gap = 5,
 		items = alloc([
 			grid_item {
 				content = widget_button {
@@ -347,7 +347,7 @@ fn init_and_run_wayland(state: *state) void = {
 fn draw(state: *state) void = {
 	// clear
 	const painter = vec::newpainter(&state.buffer.pixbuf);
-	vec::clear(&painter, vec::CORNFLOWERBLUE);
+	vec::clear(&painter, vec::MIDNIGHTBLUE);
 
 	// grid
 	grid_draw(state, &state.grid, state.grid_item_metrics);
