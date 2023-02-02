@@ -177,7 +177,7 @@ fn add_char_to_font_atlas(
 		y = 0,
 		w = glyph_pixbuf.width,
 		h = glyph_pixbuf.height,
-	}, pixbuf::blendmode::NONE);
+	});
 
 	let font_char: font_char = font_char { ... };
 	font_char.c = c;
@@ -289,7 +289,7 @@ fn draw(state: *state) void = {
 	vec::clear(&painter, vec::CORNFLOWERBLUE);
 
 	// atlas
-	// pixbuf::copy(&state.buffer.pixbuf, &pixbuf::rect {
+	// pixbuf::composite(&state.buffer.pixbuf, &pixbuf::rect {
 	// 	x = 0,
 	// 	y = 0,
 	// 	w = state.font_atlas.width,
@@ -302,7 +302,7 @@ fn draw(state: *state) void = {
 	// }, pixbuf::blendmode::ADD);
 
 	// mascot
-	pixbuf::copy(&state.buffer.pixbuf, &pixbuf::rect {
+	pixbuf::composite(&state.buffer.pixbuf, &pixbuf::rect {
 		x = state.mascot_rect.x: size,
 		y = state.mascot_rect.y: size,
 		w = state.mascot_rect.w: size,
@@ -329,7 +329,7 @@ fn draw(state: *state) void = {
 		// "😊");
 
 	// compass
-	pixbuf::copy(&state.buffer.pixbuf, &pixbuf::rect {
+	pixbuf::composite(&state.buffer.pixbuf, &pixbuf::rect {
 		x = state.compass_rect.x: size,
 		y = state.compass_rect.y: size,
 		w = state.compass_rect.w: size,
@@ -371,7 +371,7 @@ fn draw_text(state: *state, start_pos: ivec, text: str) void = {
 		if (char_pos.1 < 0) {
 			char_pos.1 = 0;
 		};
-		pixbuf::copy(&state.buffer.pixbuf, &pixbuf::rect {
+		pixbuf::composite(&state.buffer.pixbuf, &pixbuf::rect {
 			x = char_pos.0: u64,
 			y = char_pos.1: u64,
 			w = font_char.sz.0,
