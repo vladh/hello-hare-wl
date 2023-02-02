@@ -197,13 +197,23 @@ fn add_char_to_font_atlas(
 
 fn init_images(state: *state) void = {
 	state.mascot = load_image("mascot.qoi");
-	pixbuf::invert_rgb(&state.mascot);
+	invert_rgb(&state.mascot);
 	state.mascot_rect.w = state.mascot.width: f64;
 	state.mascot_rect.h = state.mascot.height: f64;
 
 	state.compass = load_image("compass.qoi");
 	state.compass_rect.w = state.compass.width: f64;
 	state.compass_rect.h = state.compass.height: f64;
+};
+
+// Inverts the RGB values in a given ARGB [[buffer]].
+fn invert_rgb(b: *pixbuf::buffer) void = {
+	let data: []u8 = pixbuf::buffer_data(b);
+	for (let i = 0z; i < len(data) - 4; i += 1) {
+		data[i + 1] = ~data[i + 1];
+		data[i + 2] = ~data[i + 2];
+		data[i + 3] = ~data[i + 3];
+	};
 };
 
 fn load_image(path: str) pixbuf::buffer = {
