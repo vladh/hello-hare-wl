@@ -10,6 +10,7 @@ type uvec = (u64, u64);
 
 type font = struct {
 	height: i16,
+	ascender: i16,
 	line_height: f32,
 };
 

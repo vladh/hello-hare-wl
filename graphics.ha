@@ -172,6 +172,7 @@ fn init_fonts(state: *state) void = {
 	let face_rec: *ft::FT_FaceRec = face: *ft::FT_FaceRec;
 	state.font = font {
 		height = face_rec.height,
+		ascender = face_rec.ascender,
 		line_height = LINE_HEIGHT,
 	};
 
