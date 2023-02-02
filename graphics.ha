@@ -74,6 +74,7 @@ fn init_grid(state: *state) void = {
 			1: grid_sizing_grow,
 			1: grid_sizing_grow,
 		]),
+		gap = 20,
 		items = alloc([
 			grid_item {
 				content = widget_button {
@@ -143,8 +144,8 @@ fn init_grid(state: *state) void = {
 		]),
 		...
 	};
-	state.grid_metrics = grid_calc(&state.grid);
-	state.grid_item_metrics = grid_calc_items(&state.grid, &state.grid_metrics);
+	state.grid_metrics = grid_calc_metrics(&state.grid);
+	state.grid_item_metrics = grid_calc_item_metrics(&state.grid, &state.grid_metrics);
 };
 
 fn init_fonts(state: *state) void = {

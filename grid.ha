@@ -38,9 +38,13 @@ type grid = struct {
 	cols: []grid_sizing,
 	rows: []grid_sizing,
 	items: []grid_item,
+	gap: u64,
 };
 
-fn grid_calc_dim(sizings: []grid_sizing, max_size: u64) []cell_metrics = {
+fn grid_calc_dim_metrics(
+	sizings: []grid_sizing,
+	max_size: u64,
+) []cell_metrics = {
 	let res: []cell_metrics = [];
 	let curr_pos = 0u64;
 	let total_fixed = 0u64;
@@ -77,15 +81,17 @@ fn grid_calc_dim(sizings: []grid_sizing, max_size: u64) []cell_metrics = {
 	return res;
 };
 
-fn grid_calc(grid: *grid) grid_metrics = {
+fn grid_calc_metrics(
+	grid: *grid,
+) grid_metrics = {
 	return grid_metrics {
-		cols = grid_calc_dim(grid.cols, grid.sz.0),
-		rows = grid_calc_dim(grid.rows, grid.sz.1),
+		cols = grid_calc_dim_metrics(grid.cols, grid.sz.0),
+		rows = grid_calc_dim_metrics(grid.rows, grid.sz.1),
 		...
 	};
 };
 
-fn grid_calc_items(
+fn grid_calc_item_metrics(
 	grid: *grid,
 	grid_metrics: *grid_metrics,
 ) []grid_item_metrics = {
@@ -117,10 +123,6 @@ fn grid_calc_items(
 				h = row_sz: f32,
 			},
 		};
-		fmt::println(item_metrics.rect.x,
-			item_metrics.rect.y,
-			item_metrics.rect.w,
-			item_metrics.rect.h)!;
 		append(res, item_metrics);
 	};
 	return res;
