@@ -277,19 +277,6 @@ fn draw(state: *state) void = {
 		h = state.mascot.height,
 	}, pixbuf::blendmode::SUBTRACT);
 
-	// compass
-	pixbuf::copy(&state.buffer.pixbuf, &pixbuf::rect {
-		x = state.compass_rect.x: size,
-		y = state.compass_rect.y: size,
-		w = state.compass_rect.w: size,
-		h = state.compass_rect.h: size,
-	}, &state.compass, &pixbuf::rect {
-		x = 0,
-		y = 0,
-		w = state.compass.width,
-		h = state.compass.height,
-	}, pixbuf::blendmode::ALPHA);
-
 	// squibble
 	const style = vec::lineargradient(
 		vec::RED,
@@ -303,6 +290,19 @@ fn draw(state: *state) void = {
 	draw_text(state, (20, 40 + state.text_y_offset),
 		"roses are red,\nviolets are blue...\n\n僕は元気でいるよ\n心配ごともすくないよ\nただ一つ今も思い出すよ");
 		// "😊");
+
+	// compass
+	pixbuf::copy(&state.buffer.pixbuf, &pixbuf::rect {
+		x = state.compass_rect.x: size,
+		y = state.compass_rect.y: size,
+		w = state.compass_rect.w: size,
+		h = state.compass_rect.h: size,
+	}, &state.compass, &pixbuf::rect {
+		x = 0,
+		y = 0,
+		w = state.compass.width,
+		h = state.compass.height,
+	}, pixbuf::blendmode::ALPHA);
 };
 
 fn draw_text(state: *state, start_pos: ivec, text: str) void = {
