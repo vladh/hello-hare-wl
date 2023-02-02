@@ -3,7 +3,12 @@ use pixbuf;
 use strings;
 use vec;
 
-fn draw_button(state: *state, button: *widget_button, rect: vec::rect) void = {
+fn draw_button(
+	state: *state,
+	button: *widget_button,
+	rect: vec::rect,
+	hover: bool,
+) void = {
 	const painter = vec::newpainter(&state.buffer.pixbuf);
 
 	const text_dimensions = get_text_dimensions(
@@ -22,7 +27,11 @@ fn draw_button(state: *state, button: *widget_button, rect: vec::rect) void = {
 	};
 	// TODO: All the other [[align]] options
 
-	vec::fill_rect(&painter, &button.style, &rect);
+	if (hover) {
+		vec::fill_rect(&painter, &button.style_hover, &rect);
+	} else {
+		vec::fill_rect(&painter, &button.style, &rect);
+	};
 	draw_text(state, text_rect, button.text);
 };
 

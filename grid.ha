@@ -14,6 +14,7 @@ type widget_button = struct {
 	text: str,
 	align: align,
 	style: vec::style,
+	style_hover: vec::style,
 };
 type drawable = (widget_button | void);
 
@@ -146,12 +147,13 @@ fn grid_calc_item_metrics(
 
 fn grid_draw_item(
 	state: *state,
+	hover: bool,
 	item: *grid_item,
 	item_metrics: *grid_item_metrics,
 ) void = {
 	match (item.content) {
 	case let b: widget_button =>
-		draw_button(state, &b, item_metrics.rect);
+		draw_button(state, &b, item_metrics.rect, hover);
 	case =>
 		abort("don't know how to draw this item");
 	};
@@ -162,8 +164,14 @@ fn grid_draw(
 	grid: *grid,
 	item_metrics: []grid_item_metrics,
 ) void = {
+	const hover_item_idx = grid_item_at(
+		state, state.mouse_x, state.mouse_y, state.grid_item_metrics);
 	for (let i = 0z; i < len(grid.items); i += 1) {
-		grid_draw_item(state, &grid.items[i], &item_metrics[i]);
+		let hover = false;
+		if (hover_item_idx is size && hover_item_idx: size == i) {
+			hover = true;
+		};
+		grid_draw_item(state, hover, &grid.items[i], &item_metrics[i]);
 	};
 };
 

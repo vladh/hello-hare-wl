@@ -30,8 +30,11 @@ fn init_grid(state: *state) void = {
 	// );
 	let COLOR_SCREEN: vec::color = (0.1, 0.1, 0.1, 1.0);
 	let COLOR_DIGIT: vec::color = (0.2, 0.2, 0.2, 1.0);
-	let COLOR_OP: vec::color = (0.1, 0.1, 0.8, 1.0);
+	let COLOR_DIGIT_HOVER: vec::color = (0.3, 0.3, 0.3, 1.0);
+	let COLOR_OP: vec::color = (0.1, 0.1, 0.7, 1.0);
+	let COLOR_OP_HOVER: vec::color = (0.2, 0.2, 0.8, 1.0);
 	let COLOR_OP2: vec::color = (0.5, 0.5, 0.5, 1.0);
+	let COLOR_OP2_HOVER: vec::color = (0.6, 0.6, 0.6, 1.0);
 
 	state.grid = grid {
 		sz = (state.width: u32, state.height: u32),
@@ -56,6 +59,7 @@ fn init_grid(state: *state) void = {
 				content = widget_button {
 					text = "HAREへようこそ!",
 					style = COLOR_BG,
+					style_hover = COLOR_BG,
 					align = align::LEFT | align::VCENTER,
 				},
 				pos = (0, 0),
@@ -66,6 +70,7 @@ fn init_grid(state: *state) void = {
 				content = widget_button {
 					text = "69420",
 					style = COLOR_SCREEN,
+					style_hover = COLOR_SCREEN,
 					align = align::LEFT | align::VCENTER,
 				},
 				pos = (0, 1),
@@ -76,6 +81,7 @@ fn init_grid(state: *state) void = {
 				content = widget_button {
 					text = "C",
 					style = COLOR_OP2,
+					style_hover = COLOR_OP2_HOVER,
 					align = align::HCENTER | align::VCENTER,
 				},
 				handler = &handle_c,
@@ -86,6 +92,7 @@ fn init_grid(state: *state) void = {
 				content = widget_button {
 					text = "+/-",
 					style = COLOR_OP2,
+					style_hover = COLOR_OP2_HOVER,
 					align = align::HCENTER | align::VCENTER,
 				},
 				handler = &handle_plusminus,
@@ -96,6 +103,7 @@ fn init_grid(state: *state) void = {
 				content = widget_button {
 					text = "%",
 					style = COLOR_OP2,
+					style_hover = COLOR_OP2_HOVER,
 					align = align::HCENTER | align::VCENTER,
 				},
 				handler = &handle_rem,
@@ -106,6 +114,7 @@ fn init_grid(state: *state) void = {
 				content = widget_button {
 					text = "/",
 					style = COLOR_OP,
+					style_hover = COLOR_OP_HOVER,
 					align = align::HCENTER | align::VCENTER,
 				},
 				handler = &handle_div,
@@ -116,6 +125,7 @@ fn init_grid(state: *state) void = {
 				content = widget_button {
 					text = "7",
 					style = COLOR_DIGIT,
+					style_hover = COLOR_DIGIT_HOVER,
 					align = align::HCENTER | align::VCENTER,
 				},
 				handler = &handle_7,
@@ -126,6 +136,7 @@ fn init_grid(state: *state) void = {
 				content = widget_button {
 					text = "8",
 					style = COLOR_DIGIT,
+					style_hover = COLOR_DIGIT_HOVER,
 					align = align::HCENTER | align::VCENTER,
 				},
 				handler = &handle_8,
@@ -136,6 +147,7 @@ fn init_grid(state: *state) void = {
 				content = widget_button {
 					text = "9",
 					style = COLOR_DIGIT,
+					style_hover = COLOR_DIGIT_HOVER,
 					align = align::HCENTER | align::VCENTER,
 				},
 				handler = &handle_9,
@@ -146,6 +158,7 @@ fn init_grid(state: *state) void = {
 				content = widget_button {
 					text = "*",
 					style = COLOR_OP,
+					style_hover = COLOR_OP_HOVER,
 					align = align::HCENTER | align::VCENTER,
 				},
 				handler = &handle_mul,
@@ -156,6 +169,7 @@ fn init_grid(state: *state) void = {
 				content = widget_button {
 					text = "4",
 					style = COLOR_DIGIT,
+					style_hover = COLOR_DIGIT_HOVER,
 					align = align::HCENTER | align::VCENTER,
 				},
 				handler = &handle_4,
@@ -166,6 +180,7 @@ fn init_grid(state: *state) void = {
 				content = widget_button {
 					text = "5",
 					style = COLOR_DIGIT,
+					style_hover = COLOR_DIGIT_HOVER,
 					align = align::HCENTER | align::VCENTER,
 				},
 				handler = &handle_5,
@@ -176,6 +191,7 @@ fn init_grid(state: *state) void = {
 				content = widget_button {
 					text = "6",
 					style = COLOR_DIGIT,
+					style_hover = COLOR_DIGIT_HOVER,
 					align = align::HCENTER | align::VCENTER,
 				},
 				handler = &handle_6,
@@ -186,6 +202,7 @@ fn init_grid(state: *state) void = {
 				content = widget_button {
 					text = "-",
 					style = COLOR_OP,
+					style_hover = COLOR_OP_HOVER,
 					align = align::HCENTER | align::VCENTER,
 				},
 				handler = &handle_sub,
@@ -196,6 +213,7 @@ fn init_grid(state: *state) void = {
 				content = widget_button {
 					text = "1",
 					style = COLOR_DIGIT,
+					style_hover = COLOR_DIGIT_HOVER,
 					align = align::HCENTER | align::VCENTER,
 				},
 				handler = &handle_1,
@@ -206,6 +224,7 @@ fn init_grid(state: *state) void = {
 				content = widget_button {
 					text = "2",
 					style = COLOR_DIGIT,
+					style_hover = COLOR_DIGIT_HOVER,
 					align = align::HCENTER | align::VCENTER,
 				},
 				handler = &handle_2,
@@ -216,6 +235,7 @@ fn init_grid(state: *state) void = {
 				content = widget_button {
 					text = "3",
 					style = COLOR_DIGIT,
+					style_hover = COLOR_DIGIT_HOVER,
 					align = align::HCENTER | align::VCENTER,
 				},
 				handler = &handle_3,
@@ -226,6 +246,7 @@ fn init_grid(state: *state) void = {
 				content = widget_button {
 					text = "+",
 					style = COLOR_OP,
+					style_hover = COLOR_OP_HOVER,
 					align = align::HCENTER | align::VCENTER,
 				},
 				handler = &handle_add,
@@ -236,6 +257,7 @@ fn init_grid(state: *state) void = {
 				content = widget_button {
 					text = "0",
 					style = COLOR_DIGIT,
+					style_hover = COLOR_DIGIT_HOVER,
 					align = align::HCENTER | align::VCENTER,
 				},
 				handler = &handle_0,
@@ -247,6 +269,7 @@ fn init_grid(state: *state) void = {
 				content = widget_button {
 					text = ".",
 					style = COLOR_DIGIT,
+					style_hover = COLOR_DIGIT_HOVER,
 					align = align::HCENTER | align::VCENTER,
 				},
 				handler = &handle_dot,
@@ -257,6 +280,7 @@ fn init_grid(state: *state) void = {
 				content = widget_button {
 					text = "=",
 					style = COLOR_OP,
+					style_hover = COLOR_OP_HOVER,
 					align = align::HCENTER | align::VCENTER,
 				},
 				handler = &handle_eq,
