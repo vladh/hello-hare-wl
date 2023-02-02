@@ -46,6 +46,10 @@ let CHARS: []u32 = [
 	0x6c17,
 	0x5fc3,
 	0x914d,
+	0x4e00,
+	0x4eca,
+	0x601d,
+	0x51fa,
 	// Some emoji
 	// 0x1f60a,
 ];
@@ -279,7 +283,7 @@ fn draw(state: *state) void = {
 
 	// text
 	draw_text(state, (20, 40 + state.text_y_offset),
-		"roses are red,\nviolets are blue...\n\n僕は元気でいるよ\n心配ごともすくないよ\nただひとついまもおもいだすよ");
+		"roses are red,\nviolets are blue...\n\n僕は元気でいるよ\n心配ごともすくないよ\nただ一つ今も思い出すよ");
 		// "😊");
 };
 
