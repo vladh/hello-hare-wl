@@ -40,6 +40,12 @@ let CHARS: []u32 = [
 	0x51fa,
 	// Some emoji
 	// 0x1f60a,
+	// Math stuff
+	0x00f7,
+	0x00d7,
+	0x00b1,
+	0xff0b,
+	0xff0d,
 ];
 
 fn init_fonts(state: *state) void = {

@@ -90,7 +90,7 @@ fn init_grid(state: *state) void = {
 			},
 			grid_item {
 				content = widget_button {
-					text = "+/-",
+					text = "±",
 					style = COLOR_OP2,
 					style_hover = COLOR_OP2_HOVER,
 					align = align::HCENTER | align::VCENTER,
@@ -112,7 +112,7 @@ fn init_grid(state: *state) void = {
 			},
 			grid_item {
 				content = widget_button {
-					text = "/",
+					text = "÷",
 					style = COLOR_OP,
 					style_hover = COLOR_OP_HOVER,
 					align = align::HCENTER | align::VCENTER,
@@ -156,7 +156,7 @@ fn init_grid(state: *state) void = {
 			},
 			grid_item {
 				content = widget_button {
-					text = "*",
+					text = "×",
 					style = COLOR_OP,
 					style_hover = COLOR_OP_HOVER,
 					align = align::HCENTER | align::VCENTER,
@@ -244,7 +244,7 @@ fn init_grid(state: *state) void = {
 			},
 			grid_item {
 				content = widget_button {
-					text = "+",
+					text = "＋",
 					style = COLOR_OP,
 					style_hover = COLOR_OP_HOVER,
 					align = align::HCENTER | align::VCENTER,
