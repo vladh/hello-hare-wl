@@ -38,6 +38,11 @@ type state = struct {
 	width: size,
 	height: size,
 
+	// Layout
+	grid: grid,
+	grid_metrics: grid_metrics,
+	grid_item_metrics: []grid_item_metrics,
+
 	// Assets
 	mascot: pixbuf::buffer,
 	compass: pixbuf::buffer,

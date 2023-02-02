@@ -57,7 +57,34 @@ let CHARS: []u32 = [
 fn init_graphics(state: *state) void = {
 	init_fonts(state);
 	init_images(state);
+	init_grid(state);
 	init_and_run_wayland(state);
+};
+
+fn init_grid(state: *state) void = {
+	state.grid = grid {
+		sz = (state.width: u32, state.height: u32),
+		cols = [
+			50: grid_sizing_fixed,
+			1: grid_sizing_grow,
+			1: grid_sizing_grow,
+		],
+		rows = [
+			50: grid_sizing_fixed,
+			1: grid_sizing_grow,
+			1: grid_sizing_grow,
+		],
+		items = [
+			grid_item {
+				content = widget_button { text = "hello" },
+				pos = (1, 0),
+				span = (1, 2),
+			},
+		],
+		...
+	};
+	state.grid_metrics = grid_calc(&state.grid);
+	state.grid_item_metrics = grid_calc_items(&state.grid, &state.grid_metrics);
 };
 
 fn init_fonts(state: *state) void = {
@@ -70,14 +97,15 @@ fn init_fonts(state: *state) void = {
 	let face: ft::FT_Face = null;
 	const status = ft::FT_New_Face(library, FONT_PATH, 0, &face);
 	if (status != 0) {
-		fmt::printfln("could not load face: (path {}) (status {})",
-			FONT_PATH, status: int)!;
+		fmt::fatal("could not load face: (path {}) (status {})",
+			FONT_PATH, status: int);
 	};
+	defer ft::FT_Done_Face(face);
 
 	ft::FT_Set_Pixel_Sizes(face, 0, FONT_SIZE);
 
 	if (ft::FT_Is_Scalable(face)) {
-		fmt::printfln("face is not scalable")!;
+		fmt::fatal("face is not scalable");
 	};
 
 	let face_rec: *ft::FT_FaceRec = face: *ft::FT_FaceRec;
@@ -92,7 +120,6 @@ fn init_fonts(state: *state) void = {
 		add_char_to_font_atlas(state, face, &next_tex_pos, c);
 	};
 
-	ft::FT_Done_Face(face);
 };
 
 fn add_char_to_font_atlas(
