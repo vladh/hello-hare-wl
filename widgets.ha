@@ -118,28 +118,6 @@ fn get_text_dimensions(state: *state, start_pos: ivec, text: str) vec::rect = {
 	};
 };
 
-fn get_font_char(font_chars: []font_char, c: u32) (*font_char | void) = {
-	for (let i = 0z; i < len(font_chars); i += 1) {
-		if (font_chars[i].c == c) {
-			return &font_chars[i];
-		};
-	};
-	return void;
-};
-
-fn frac_px_to_px(n: i64) i64 = {
-	return n >> 6;
-};
-
-fn font_unit_to_px(n: i64) i64 = {
-	// NOTE: We should be dividing by units_per_em here...probably?
-	// This is because we expect height etc. to be in "font units".
-	// But treating these metrics as "fractional pixels" seems to work,
-	// whereas division by units_per_em doesn't.
-	// Check this in more detail.
-	return n >> 6;
-};
-
 fn rect_align_center(parent: vec::rect, child: vec::rect) vec::rect = {
 	return vec::rect {
 		x = parent.x + parent.w / 2.0 - child.w / 2.0,
