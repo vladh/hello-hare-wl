@@ -170,6 +170,7 @@ fn add_char_to_font_atlas(
 
 fn init_images(state: *state) void = {
 	state.mascot = load_image("mascot.qoi");
+	pixbuf::invert_rgb(&state.mascot);
 	state.mascot_rect.w = state.mascot.width: f64;
 	state.mascot_rect.h = state.mascot.height: f64;
 };
@@ -270,7 +271,7 @@ fn draw(state: *state) void = {
 		y = 0,
 		w = state.mascot.width,
 		h = state.mascot.height,
-	}, pixbuf::blendmode::NONE);
+	}, pixbuf::blendmode::ADD);
 
 	// squibble
 	const style = vec::lineargradient(
@@ -326,7 +327,7 @@ fn draw_text(state: *state, start_pos: ivec, text: str) void = {
 			y = font_char.tex_coords.1,
 			w = font_char.sz.0,
 			h = font_char.sz.1,
-		}, pixbuf::blendmode::ADD);
+		}, pixbuf::blendmode::SUBTRACT);
 		curr_pos.0 = curr_pos.0 + frac_px_to_px(font_char.advance.0);
 		curr_pos.1 = curr_pos.1 + frac_px_to_px(font_char.advance.1);
 	};
