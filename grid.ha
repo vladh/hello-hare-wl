@@ -1,7 +1,9 @@
 use fmt;
+use vec;
 
 type widget_button = struct {
 	text: str,
+	style: vec::style,
 };
 type drawable = (widget_button | void);
 
@@ -10,13 +12,13 @@ type grid_sizing_grow = u64;
 type grid_sizing = (grid_sizing_fixed | grid_sizing_grow);
 
 type grid_item_metrics = struct {
-	origin: uvec,
-	sz: uvec,
+	rect: vec::rect,
 };
 
 type grid_item = struct {
 	content: drawable,
 	pos: uvec,
+	// This is the span _in addition to_ the default 1x1 size
 	span: uvec,
 };
 
@@ -67,7 +69,7 @@ fn grid_calc_dim(sizings: []grid_sizing, max_size: u64) []cell_metrics = {
 		};
 		append(res, cell_metrics {
 			origin = curr_pos,
-			sz = curr_pos + sz,
+			sz = sz,
 		});
 		curr_pos = curr_pos + sz;
 	};
@@ -83,23 +85,66 @@ fn grid_calc(grid: *grid) grid_metrics = {
 	};
 };
 
-fn grid_calc_items(grid: *grid, grid_metrics: *grid_metrics) []grid_item_metrics = {
+fn grid_calc_items(
+	grid: *grid,
+	grid_metrics: *grid_metrics,
+) []grid_item_metrics = {
 	let res: []grid_item_metrics = [];
 	for (let i = 0z; i < len(grid.items); i += 1) {
 		const item: *grid_item = &grid.items[i];
-		const col = grid_metrics.cols[item.pos.0];
-		const row = grid_metrics.rows[item.pos.1];
-		const item_metrics = grid_item_metrics {
-			sz = (col.sz, row.sz),
-			origin = (col.origin, row.origin),
+
+		const col_from = item.pos.0;
+		const col_to = col_from + item.span.0;
+		const origin_col = grid_metrics.cols[col_from];
+		let col_sz = 0u64;
+		for (let col = col_from; col <= col_to; col += 1) {
+			col_sz += grid_metrics.cols[col].sz;
 		};
+
+		const row_from = item.pos.1;
+		const row_to = row_from + item.span.1;
+		let row_sz = 0u64;
+		const origin_row = grid_metrics.rows[row_from];
+		for (let row = row_from; row <= row_to; row += 1) {
+			row_sz += grid_metrics.rows[row].sz;
+		};
+
+		const item_metrics = grid_item_metrics {
+			rect = vec::rect {
+				x = origin_col.origin: f32,
+				y = origin_row.origin: f32,
+				w = col_sz: f32,
+				h = row_sz: f32,
+			},
+		};
+		fmt::println(item_metrics.rect.x,
+			item_metrics.rect.y,
+			item_metrics.rect.w,
+			item_metrics.rect.h)!;
 		append(res, item_metrics);
 	};
-	for (let i = 0z; i < len(res); i += 1) {
-		fmt::printfln("{}: sz ({}, {}) origin ({}, {})",
-			i,
-			res[i].sz.0, res[i].sz.1,
-			res[i].origin.0, res[i].origin.1)!;
-	};
 	return res;
+};
+
+fn grid_draw_item(
+	state: *state,
+	item: *grid_item,
+	item_metrics: *grid_item_metrics,
+) void = {
+	match (item.content) {
+	case let b: widget_button =>
+		draw_button(state, &b, item_metrics.rect);
+	case =>
+		abort("don't know how to draw this item");
+	};
+};
+
+fn grid_draw(
+	state: *state,
+	grid: *grid,
+	item_metrics: []grid_item_metrics,
+) void = {
+	for (let i = 0z; i < len(grid.items); i += 1) {
+		grid_draw_item(state, &grid.items[i], &item_metrics[i]);
+	};
 };
