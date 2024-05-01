@@ -13,3 +13,15 @@ Dependencies:
 * [hare-wayland](https://git.sr.ht/~sircmpwn/hare-wayland)
 * [hare-xml](https://git.sr.ht/~sircmpwn/hare-xml)
 * [pixbuf](https://git.sr.ht/~sircmpwn/pixbuf)
+
+## Contributing
+
+Send patches to `~vladh/general@lists.sr.ht` using subject prefix `[PATCH hello-hare-wl]`. For example:
+
+```
+git config sendemail.to '~vladh/general@lists.sr.ht'
+git config format.subjectPrefix 'PATCH hello-hare-wl'
+git send-email HEAD^
+```
+
+For more information, see [git-send-email.io](https://git-send-email.io/).
